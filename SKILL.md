@@ -141,6 +141,28 @@ genuinely a list.
   turn latency promises into something reviewable.
 - Text must stay inside its viewBox at rendered size; check visually.
 
+### Optional: hand-drawn margin annotations
+
+For pages headed into a review, a layer of hand-drawn margin notes
+([neat-annotations](https://github.com/syabro/neat-annotations), pure CSS)
+adds a "human marked this up" emphasis that plain callouts can't. Opt-in:
+offer it when the page's job is to be challenged (a proposal, a draft
+playbook), skip it for reference docs. If used:
+
+- Load via CDN link plus the Shantell Sans font; wrap the decisive phrase in
+  `<span class="ann ann-w ann-amber" data-note="...">`.
+- **Cap at ~8 per page**, only where a decision, risk, or the core problem
+  lives. Annotations on everything annotate nothing.
+- **Direction classes name the arrow's direction, not the label's position.**
+  `ann-w` puts the label in the right margin with the arrow pointing west
+  into the text — that is the one you usually want. Getting this backwards
+  puts labels on top of body text; screenshot-verify placement.
+- **Bilingual pages: annotations live inside the dictionary strings.** The
+  language switch replaces innerHTML, so a note only present in the English
+  markup vanishes in 中文. Embed the annotation markup (with a translated
+  `data-note`) in both dictionaries, or it will silently disappear in one
+  language.
+
 ## Step 4 · Verify
 
 1. Run `node scripts/validate-page.mjs <path>/index.html` from this skill's

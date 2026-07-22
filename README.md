@@ -31,19 +31,25 @@ self-contained.
 
 ## What it does
 
-- **One self-contained `index.html`** in a restrained white/ink/orange style
-  (Space Grotesk, Inter, JetBrains Mono), 4 to 9 numbered sections with
-  active-section tracking.
-- **Plain language enforced**: headlines carry takeaways, short paragraphs,
-  numbers over adjectives, no jargon, no em-dashes. Same rules in both
-  languages.
-- **Diagrams over prose** for anything structural: architecture, flows,
-  loops, timelines, drawn as inline SVG with numbered explanations.
-- **Remembers your preferences**: found logo path and language choice are
-  saved (agent memory plus `.context/build-plan-prefs.json`) so the next
-  page starts warm.
-- **Single language by default**; bilingual pages get a full i18n contract
-  with key parity enforced by `scripts/validate-page.mjs`.
+![What the skill contains](assets/skill-overview.svg)
+
+In priority order:
+
+1. **Plain language, enforced.** Headlines carry takeaways ("Six steps, only
+   two model calls", not "Workflow Overview"), short paragraphs, numbers over
+   adjectives, no jargon, no em-dashes. Same rules in English and 中文.
+2. **Diagrams over prose.** Anything structural (architecture, flows, loops,
+   timelines) becomes an inline SVG figure with a numbered explanation below
+   it, drawn with the framework's own primitives.
+3. **One self-contained `index.html`** in a restrained white/ink/orange
+   style: fixed sidebar with numbered sections, active-section tracking,
+   tables, callouts, mobile layout. No build step, opens anywhere.
+4. **Single language by default; bilingual on request.** A second language
+   adds a full EN/中文 toggle with dictionary key parity enforced by the
+   bundled validator.
+5. **Remembers your setup.** Repo logo discovery and language choice are
+   saved (agent memory plus `.context/build-plan-prefs.json`), so the second
+   page never re-asks what the first one learned.
 
 ## Layout
 

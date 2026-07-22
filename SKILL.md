@@ -81,10 +81,11 @@ improvising the framework:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yulonghe97/build-plan/main/assets/technical-page.html -o index.html
-``` Default destination
-when none is given: a new folder under the workspace's `.context/`. The page
-must be complete at first load: no lorem, no `{{placeholders}}`, no leftover
-example rows.
+```
+
+Default destination when none is given: a new folder under the workspace's
+`.context/`. The page must be complete at first load: no lorem, no
+`{{placeholders}}`, no leftover example rows.
 
 Keep the framework as-is: 232px sidebar, white canvas, ink headings, orange
 accent, Space Grotesk / Inter / JetBrains Mono, numbered nav with

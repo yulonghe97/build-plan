@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webhook Relay · Technical Design Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0c2b;
+    --body: #2a2a3a;
+    --muted: #666;
+    --faint: #8a8a94;
+    --hairline: #e7e7ea;
+    --surface: #fafafa;
+    --accent: #ff4301;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #fff;
+    color: var(--body);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 232px;
+    overflow-y: auto;
+    border-right: 1px solid var(--hairline);
+    background: #fff;
+    padding: 36px 0 24px;
+  }
+
+  .nav-brand { padding: 0 28px 28px; }
+  .nav-brand .brand-icon {
+    display: block;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 14px;
+    border-radius: 6px;
+  }
+  .nav-brand h1 {
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .nav-brand p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  nav ol { list-style: none; }
+  nav ol a {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 7px 28px;
+    text-decoration: none;
+    transition: color 150ms, border-color 150ms;
+  }
+  nav ol a .number {
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  nav ol a:hover { color: var(--ink); }
+  nav ol a.active {
+    border-left-color: var(--accent);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  nav ol a.active .number { color: var(--accent); }
+
+  .nav-foot {
+    margin-top: 24px;
+    border-top: 1px solid var(--hairline);
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.8;
+    padding: 24px 28px 0;
+  }
+
+  main {
+    max-width: 860px;
+    margin-left: 232px;
+    padding: 72px 64px 120px;
+  }
+  section {
+    margin-bottom: 88px;
+    scroll-margin-top: 40px;
+  }
+  .kicker {
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  h2 {
+    margin-bottom: 18px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h3 {
+    margin: 32px 0 10px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  p { max-width: 680px; margin-bottom: 14px; }
+  p.lede { color: var(--ink); font-size: 17px; line-height: 1.6; }
+  strong { color: var(--ink); font-weight: 600; }
+
+  ol.steps,
+  ul.tight {
+    max-width: 680px;
+    margin: 0 0 16px 20px;
+  }
+  ol.steps li,
+  ul.tight li { margin-bottom: 10px; }
+
+  code {
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 1px 5px;
+  }
+  pre {
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    padding: 18px 22px;
+  }
+
+  .table-wrap { width: 100%; overflow-x: auto; }
+  table {
+    width: 100%;
+    min-width: 560px;
+    margin: 16px 0 20px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    border-bottom: 1px solid var(--ink);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0 14px 10px 0;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  td {
+    border-bottom: 1px solid var(--hairline);
+    line-height: 1.55;
+    padding: 11px 14px 11px 0;
+    vertical-align: top;
+  }
+  td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .dim { color: var(--muted); }
+
+  figure {
+    margin: 24px 0;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: #fff;
+    padding: 28px 24px 20px;
+  }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    margin-top: 16px;
+    border-top: 1px solid var(--hairline);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding-top: 14px;
+  }
+
+  .callout {
+    max-width: 680px;
+    margin: 20px 0;
+    border: 1px solid var(--hairline);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    background: var(--surface);
+    font-size: 14px;
+    padding: 16px 20px;
+  }
+  .callout-title {
+    margin-bottom: 6px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  svg text { font-family: var(--sans); }
+  .svg-title { fill: var(--ink); font-size: 13px; font-weight: 600; }
+  .svg-copy { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .svg-label { fill: var(--accent); font-family: var(--mono); font-size: 11px; }
+  .box { fill: #fff; stroke: #cfcfd6; rx: 6; }
+  .box-strong { fill: #fff; stroke: var(--ink); stroke-width: 1.2; rx: 6; }
+  .box-accent { fill: #fff; stroke: var(--accent); stroke-width: 1.2; rx: 6; }
+  .line { fill: none; stroke: #b9b9c2; stroke-width: 1.2; }
+
+  @media (max-width: 900px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 72px 24px 80px; }
+    h2 { font-size: 24px; }
+    figure { padding: 20px 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img class="brand-icon" src="brand-icon.svg" alt="Webhook Relay">
+    <h1>Webhook Relay</h1>
+    <p>Technical Design Plan</p>
+  </div>
+
+  <ol>
+    <li><a href="#overview"><span class="number">01</span><span>Overview</span></a></li>
+    <li><a href="#decisions"><span class="number">02</span><span>Key Decisions</span></a></li>
+    <li><a href="#architecture"><span class="number">03</span><span>Architecture</span></a></li>
+    <li><a href="#workflow"><span class="number">04</span><span>Workflow</span></a></li>
+    <li><a href="#rollout"><span class="number">05</span><span>Rollout</span></a></li>
+    <li><a href="#references"><span class="number">06</span><span>References</span></a></li>
+  </ol>
+
+  <div class="nav-foot">Draft for review<br>Platform · Webhook Relay</div>
+</nav>
+
+<main>
+  <section id="overview">
+    <div class="kicker">01 · Overview</div>
+    <h2>One relay, so no team talks to Stripe directly</h2>
+    <p class="lede">webhook-relay is a small Node service that receives Stripe's webhook stream once, verifies it, dedupes it in Postgres, and republishes it to internal consumers over SQS.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td>Purpose</td><td>Give every internal service one deduped, signed feed of Stripe events, so no team builds its own Stripe webhook endpoint.</td></tr>
+          <tr><td>Boundary</td><td>The relay owns receiving, verifying, deduping, and publishing to SQS. It does not own what a consumer does with an event, and it never calls back into Stripe.</td></tr>
+          <tr><td>Success</td><td>Every Stripe event reaches every subscribed consumer at least once, and a consumer that dedupes on <code>event.id</code> sees zero duplicate side effects.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="decisions">
+    <div class="kicker">02 · Key Decisions</div>
+    <h2>At-least-once, 7-day retention, dead-letter after 5</h2>
+    <p>Three decisions shape everything else in this plan. None of them are reversible without changing how consumer teams write their handlers, so they're fixed here before implementation starts.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Decision</th><th>Choice</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Delivery guarantee</td><td class="dim">At-least-once</td><td>Exactly-once needs a distributed transaction across Stripe, Postgres, and SQS. Every extra guarantee is a new failure mode. Consumers absorb duplicates instead.</td></tr>
+          <tr><td>Event retention</td><td class="dim">7 days in Postgres</td><td>Covers Stripe's own 3-day automatic retry window with margin, and gives on-call a real window to replay events by hand if a consumer ships a bug.</td></tr>
+          <tr><td>Retry ceiling</td><td class="dim">5 attempts, then dead-letter</td><td>Long enough to survive a deploy or a short outage. Short enough that a broken consumer gets flagged in minutes, not days.</td></tr>
+          <tr><td>Fanout transport</td><td class="dim">One SQS queue per consumer</td><td>Isolates a slow or broken consumer from every other one. No consumer's backlog can slow another consumer's queue.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">Decision</div>
+      <span>At-least-once is the one fact every consumer team needs before writing a handler: dedupe on <code>event.id</code>, or expect to eventually double-process a payment event.</span>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="kicker">03 · Architecture</div>
+    <h2>Stripe never talks to a consumer directly</h2>
+    <p>Stripe posts to exactly one endpoint. The relay verifies, dedupes against Postgres, and republishes to one SQS queue per consumer. A consumer only ever talks to its own queue, never to Stripe and never to another consumer's queue.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 286" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Webhook relay architecture: Stripe to relay to Postgres and SQS to consumers">
+        <defs>
+          <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0.5 L7.5,4 L0,7.5" fill="none" stroke="#b9b9c2" stroke-width="1.2"/>
+          </marker>
+        </defs>
+
+        <rect class="box" x="24" y="28" width="188" height="64"/>
+        <text class="svg-title" x="40" y="54">Stripe</text>
+        <text class="svg-copy" x="40" y="74">signed webhook POST</text>
+
+        <rect class="box-accent" x="266" y="20" width="188" height="80"/>
+        <text class="svg-label" x="282" y="44">CORE</text>
+        <text class="svg-title" x="282" y="65">webhook-relay</text>
+        <text class="svg-copy" x="282" y="84">verify · dedupe · publish</text>
+
+        <rect class="box" x="508" y="28" width="188" height="64"/>
+        <text class="svg-title" x="524" y="54">SQS queues</text>
+        <text class="svg-copy" x="524" y="74">one queue per consumer</text>
+
+        <line class="line" x1="212" y1="60" x2="262" y2="60" marker-end="url(#arrow)"/>
+        <text class="svg-copy" x="216" y="50">signed POST</text>
+        <line class="line" x1="454" y1="60" x2="504" y2="60" marker-end="url(#arrow)"/>
+        <text class="svg-copy" x="460" y="50">publish</text>
+
+        <rect class="box-strong" x="266" y="164" width="188" height="64"/>
+        <text class="svg-title" x="282" y="190">Postgres</text>
+        <text class="svg-copy" x="282" y="210">event id + payload</text>
+        <line class="line" x1="360" y1="100" x2="360" y2="160" marker-end="url(#arrow)"/>
+        <text class="svg-copy" x="366" y="135">check + write</text>
+
+        <rect class="box" x="508" y="164" width="188" height="64"/>
+        <text class="svg-title" x="524" y="190">Internal consumers</text>
+        <text class="svg-copy" x="524" y="210">billing · fulfillment</text>
+        <line class="line" x1="602" y1="92" x2="602" y2="160" marker-end="url(#arrow)"/>
+        <text class="svg-copy" x="608" y="135">poll own queue</text>
+
+        <text class="svg-label" x="24" y="252">HARD BOUNDARY</text>
+        <text class="svg-copy" x="24" y="271">Relay owns everything left of the queue. Consumers own everything after it.</text>
+      </svg>
+      <figcaption>Figure 1 · Solid outline = external or consumer-owned. Orange outline = the new webhook-relay core. Bold outline = durable state in Postgres.</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><strong>Ingress.</strong> Stripe posts every event to one HTTPS endpoint. The relay checks the <code>Stripe-Signature</code> header and a 5-minute timestamp window before anything else happens.</li>
+      <li><strong>Core.</strong> A Postgres unique constraint on the Stripe event id is the only source of truth for "have we seen this before." First-seen events get published; repeats get acknowledged and dropped.</li>
+      <li><strong>Fanout.</strong> Every subscribed consumer owns one SQS queue. The relay publishes once per queue, so a stuck consumer never slows down the others.</li>
+    </ol>
+  </section>
+
+  <section id="workflow">
+    <div class="kicker">04 · Workflow</div>
+    <h2>Four steps from Stripe POST to consumer receipt</h2>
+    <p>The path is short on purpose: verify, dedupe, publish, and (only on failure) retry. Every step either finishes in milliseconds or hands off to SQS, so the HTTP handler that talks to Stripe never blocks on a consumer.</p>
+
+    <ol class="steps">
+      <li><strong>Receive &amp; verify.</strong> Validate the <code>Stripe-Signature</code> header against the webhook secret and a 5-minute timestamp tolerance. A bad signature gets a 400 and never reaches Postgres.</li>
+      <li><strong>Dedupe.</strong> Insert the event id into a unique-indexed table. If the insert conflicts, the event was already handled; the relay returns 200 immediately and skips fanout.</li>
+      <li><strong>Publish.</strong> On a first-seen insert, publish one message per subscriber queue in SQS, each tagged with the event id and <code>attempt: 1</code>.</li>
+      <li><strong>Retry or park.</strong> A failed consumer delivery goes back on its queue with backoff (30s, 1m, 2m, 4m, 8m). After 5 total attempts, SQS moves the message to that consumer's dead-letter queue and pages on-call.</li>
+    </ol>
+
+    <h3>Contract surface</h3>
+    <pre><span># the relay's own endpoints, not Stripe's</span>
+POST /webhooks/stripe          Stripe    -&gt; relay, verified + deduped
+POST /events/:id/replay        On-call   -&gt; relay, re-publish one event to every queue
+GET  /events/:id               On-call   -&gt; relay, inspect delivery + attempt history</pre>
+  </section>
+
+  <section id="rollout">
+    <div class="kicker">05 · Rollout</div>
+    <h2>Three phases, each provable before the next starts</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Phase</th><th>Delivers</th><th>Measured by</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Shadow mode</td><td class="dim">Relay verifies, dedupes, and stores every Stripe event, but publishes to no consumer queue.</td><td class="dim">Zero missed or malformed events over 2 weeks, checked against Stripe's own event log.</td></tr>
+          <tr><td>2</td><td>Single consumer</td><td class="dim">Fanout turns on for exactly one low-risk consumer; every other team keeps its current direct Stripe integration.</td><td class="dim">POST-to-delivery latency and duplicate rate for that one consumer, watched for 1 to 2 weeks.</td></tr>
+          <tr><td>3</td><td>All consumers</td><td class="dim">Every remaining consumer cuts over to the relay; direct Stripe webhook endpoints elsewhere get deleted.</td><td class="dim">100% of consumers on the relay, zero direct Stripe subscriptions left outside it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">Verify first</div>
+      <span>Before shadow mode starts: the Stripe webhook secret is rotated into the secrets manager, the phase-2 pilot consumer's team has agreed to dedupe on <code>event.id</code>, and the dead-letter queue alarm pages on-call, not a dashboard nobody watches.</span>
+    </div>
+  </section>
+
+  <section id="references">
+    <div class="kicker">06 · References</div>
+    <h2>Sources</h2>
+    <ul class="tight">
+      <li><strong>Stripe webhook signatures.</strong> <a href="https://docs.stripe.com/webhooks/signatures">docs.stripe.com/webhooks/signatures</a> — the signing scheme and timestamp tolerance this design follows.</li>
+      <li><strong>SQS dead-letter queues.</strong> <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html">docs.aws.amazon.com · SQS dead-letter queues</a> — the retry and DLQ mechanics the fanout step relies on.</li>
+      <li><strong>Repository.</strong> <code>services/webhook-relay/</code> — implementation lands here once phase 1 starts. Until then, this document is the spec.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+  const links = document.querySelectorAll('nav ol a');
+  const sections = [...document.querySelectorAll('main section')];
+  const linksById = Object.fromEntries(
+    [...links].map((link) => [link.getAttribute('href').slice(1), link])
+  );
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      links.forEach((link) => link.classList.remove('active'));
+      linksById[entry.target.id]?.classList.add('active');
+    }
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach((section) => observer.observe(section));
+</script>
+</body>
+</html>

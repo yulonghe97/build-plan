@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Triage · Feature Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0c2b;
+    --body: #2a2a3a;
+    --muted: #666;
+    --faint: #8a8a94;
+    --hairline: #e7e7ea;
+    --surface: #fafafa;
+    --accent: #ff4301;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #fff;
+    color: var(--body);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 232px;
+    overflow-y: auto;
+    border-right: 1px solid var(--hairline);
+    background: #fff;
+    padding: 36px 0 24px;
+  }
+
+  .nav-brand { padding: 0 28px 28px; }
+  .nav-brand .brand-icon {
+    display: block;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 14px;
+  }
+  .nav-brand .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .nav-brand h1 {
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .nav-brand p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .language-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 176px;
+    margin: 0 28px 24px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: var(--surface);
+    padding: 2px;
+  }
+  .language-switcher button {
+    min-width: 0;
+    height: 30px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .language-switcher button[aria-pressed="true"] {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgb(13 12 43 / 10%);
+  }
+  .language-switcher button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  nav ol { list-style: none; }
+  nav ol a {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 7px 28px;
+    text-decoration: none;
+    transition: color 150ms, border-color 150ms;
+  }
+  nav ol a .number {
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  nav ol a:hover { color: var(--ink); }
+  nav ol a.active {
+    border-left-color: var(--accent);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  nav ol a.active .number { color: var(--accent); }
+
+  .nav-foot {
+    margin-top: 24px;
+    border-top: 1px solid var(--hairline);
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.8;
+    padding: 24px 28px 0;
+  }
+
+  main {
+    max-width: 860px;
+    margin-left: 232px;
+    padding: 72px 64px 120px;
+  }
+  section {
+    margin-bottom: 88px;
+    scroll-margin-top: 40px;
+  }
+  .kicker {
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  h2 {
+    margin-bottom: 18px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h3 {
+    margin: 32px 0 10px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  p { max-width: 680px; margin-bottom: 14px; }
+  p.lede { color: var(--ink); font-size: 17px; line-height: 1.6; }
+  strong { color: var(--ink); font-weight: 600; }
+
+  ol.steps,
+  ul.tight {
+    max-width: 680px;
+    margin: 0 0 16px 20px;
+  }
+  ol.steps li,
+  ul.tight li { margin-bottom: 10px; }
+
+  code {
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 1px 5px;
+  }
+  pre {
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    padding: 18px 22px;
+    white-space: pre;
+  }
+
+  .table-wrap { width: 100%; overflow-x: auto; }
+  table {
+    width: 100%;
+    min-width: 560px;
+    margin: 16px 0 20px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    border-bottom: 1px solid var(--ink);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0 14px 10px 0;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  td {
+    border-bottom: 1px solid var(--hairline);
+    line-height: 1.55;
+    padding: 11px 14px 11px 0;
+    vertical-align: top;
+  }
+  td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .dim { color: var(--muted); }
+
+  figure {
+    margin: 24px 0;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: #fff;
+    padding: 28px 24px 20px;
+  }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    margin-top: 16px;
+    border-top: 1px solid var(--hairline);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding-top: 14px;
+  }
+
+  .callout {
+    max-width: 680px;
+    margin: 20px 0;
+    border: 1px solid var(--hairline);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    background: var(--surface);
+    font-size: 14px;
+    padding: 16px 20px;
+  }
+  .callout-title {
+    margin-bottom: 6px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  svg text { font-family: var(--sans); }
+  .svg-title { fill: var(--ink); font-size: 13px; font-weight: 600; }
+  .svg-copy { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .svg-label { fill: var(--accent); font-family: var(--mono); font-size: 11px; }
+  .box { fill: #fff; stroke: #cfcfd6; rx: 6; }
+  .box-strong { fill: #fff; stroke: var(--ink); stroke-width: 1.2; rx: 6; }
+  .box-accent { fill: #fff; stroke: var(--accent); stroke-width: 1.2; rx: 6; }
+  .line { fill: none; stroke: #b9b9c2; stroke-width: 1.2; }
+
+  @media (max-width: 900px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 72px 24px 80px; }
+    .mobile-language-switcher {
+      position: fixed;
+      z-index: 10;
+      top: 16px;
+      right: 16px;
+      display: grid;
+      width: 152px;
+      margin: 0;
+      background: rgb(250 250 250 / 94%);
+      backdrop-filter: blur(8px);
+    }
+    h2 { font-size: 24px; }
+    figure { padding: 20px 14px 16px; }
+  }
+  @media (min-width: 901px) {
+    .mobile-language-switcher { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="dot"></span>
+    <h1 data-i18n="projectName">Ticket Triage</h1>
+    <p data-i18n="documentType">Feature Plan</p>
+  </div>
+
+  <div class="language-switcher" role="group" data-i18n-aria="languageLabel" aria-label="Language">
+    <button type="button" data-language="en" aria-pressed="true">EN</button>
+    <button type="button" data-language="zh" aria-pressed="false">中文</button>
+  </div>
+
+  <ol>
+    <li><a href="#overview"><span class="number">01</span><span data-i18n="navOverview">Overview</span></a></li>
+    <li><a href="#changes"><span class="number">02</span><span data-i18n="navChanges">What Changes</span></a></li>
+    <li><a href="#pipeline"><span class="number">03</span><span data-i18n="navPipeline">Pipeline</span></a></li>
+    <li><a href="#workflow"><span class="number">04</span><span data-i18n="navWorkflow">Workflow</span></a></li>
+    <li><a href="#rollout"><span class="number">05</span><span data-i18n="navRollout">Rollout</span></a></li>
+    <li><a href="#questions"><span class="number">06</span><span data-i18n="navQuestions">Open Questions</span></a></li>
+  </ol>
+
+  <div class="nav-foot" data-i18n-html="navFoot">Draft for review<br>Support Eng · Ticket Triage</div>
+</nav>
+
+<div class="language-switcher mobile-language-switcher" role="group" data-i18n-aria="languageLabel" aria-label="Language">
+  <button type="button" data-language="en" aria-pressed="true">EN</button>
+  <button type="button" data-language="zh" aria-pressed="false">中文</button>
+</div>
+
+<main>
+  <section id="overview">
+    <div class="kicker" data-i18n="s1Kicker">01 · Overview</div>
+    <h2 data-i18n="s1Title">Cut manual sorting to only the tickets automation is unsure about</h2>
+    <p class="lede" data-i18n="s1Lede">Every support ticket gets sorted into a category before an agent can work it. This plan adds a rule engine and a single model call so only the unclear cases still need a human to decide.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td data-i18n="s1Row1Label">Purpose</td><td data-i18n="s1Row1Copy">Classify every incoming ticket automatically, and only hand off the ones the system isn't confident about.</td></tr>
+          <tr><td data-i18n="s1Row2Label">Boundary</td><td data-i18n="s1Row2Copy">This system only assigns a category and a confidence score. It does not reply to the customer or resolve the ticket.</td></tr>
+          <tr><td data-i18n="s1Row3Label">Success</td><td data-i18n="s1Row3Copy">The pipeline matches human classification at 90% accuracy or higher, measured in shadow mode, before it ever routes a live ticket.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="changes">
+    <div class="kicker" data-i18n="s2Kicker">02 · What Changes</div>
+    <h2 data-i18n="s2Title">100 hours of manual sorting a day, shrunk to the unsure fraction</h2>
+    <p data-i18n="s2Intro">Support agents read and categorize every ticket today. Rules and a model do that first now; agents step in only when confidence is low.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th data-i18n="thDimension">Dimension</th><th data-i18n="thToday">Today</th><th data-i18n="thTarget">Target</th></tr>
+        </thead>
+        <tbody>
+          <tr><td data-i18n="s2Row1Label">Ownership</td><td class="dim" data-i18n="s2Row1Today">A support agent reads and categorizes each of the ~2,000 tickets submitted per day.</td><td data-i18n="s2Row1Target">Rules and a model classify every ticket first. Agents only classify the ones below a 0.7 confidence score.</td></tr>
+          <tr><td data-i18n="s2Row2Label">Manual effort</td><td class="dim" data-i18n="s2Row2Today">Manual classification averages 3 minutes a ticket, about 100 person-hours of sorting a day across 2,000 tickets.</td><td data-i18n="s2Row2Target">Manual effort drops to whatever share of tickets lands below the 0.7 threshold. Shadow mode measures the real number before launch.</td></tr>
+          <tr><td data-i18n="s2Row3Label">Validation</td><td class="dim" data-i18n="s2Row3Today">There is no baseline for how consistent human classification is across agents.</td><td data-i18n="s2Row3Target">Two weeks of shadow-mode predictions are compared against human labels every day before the switch is allowed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title" data-i18n="s2CalloutTitle">Decision</div>
+      <span data-i18n="s2CalloutCopy">The pipeline only takes over routing once shadow-mode accuracy reaches 90% against human labels. Below that, it keeps running in parallel and agents keep classifying every ticket.</span>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="kicker" data-i18n="s3Kicker">03 · Classification Pipeline</div>
+    <h2 data-i18n="s3Title">Keyword rules first, one model call as fallback</h2>
+    <p data-i18n="s3Intro">Around 50 keyword rules catch the clear-cut tickets instantly. Anything they miss gets exactly one model call, which returns a category and a confidence score.</p>
+
+    <figure>
+      <svg viewBox="0 0 780 360" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="diagram1Aria" aria-label="Ticket classification pipeline">
+        <defs>
+          <marker id="arrow1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0.5 L7.5,4 L0,7.5" fill="none" stroke="#b9b9c2" stroke-width="1.2"/>
+          </marker>
+        </defs>
+
+        <rect class="box" x="20" y="148" width="140" height="68"/>
+        <text class="svg-title" x="36" y="176" data-i18n="d1ATitle">Ticket submitted</text>
+        <text class="svg-copy" x="36" y="198" data-i18n="d1ACopy">~2,000 a day</text>
+
+        <rect class="box-accent" x="200" y="130" width="170" height="96"/>
+        <text class="svg-label" x="216" y="152" data-i18n="d1BLabel">RULES</text>
+        <text class="svg-title" x="216" y="174" data-i18n="d1BTitle">Rule engine</text>
+        <text class="svg-copy" x="216" y="196" data-i18n="d1BCopy">~50 keyword rules</text>
+
+        <rect class="box-strong" x="200" y="272" width="170" height="68"/>
+        <text class="svg-title" x="216" y="300" data-i18n="d1CTitle">Category assigned</text>
+        <text class="svg-copy" x="216" y="320" data-i18n="d1CCopy">no model call</text>
+
+        <rect class="box-accent" x="430" y="30" width="170" height="88"/>
+        <text class="svg-label" x="446" y="52" data-i18n="d1DLabel">MODEL</text>
+        <text class="svg-title" x="446" y="74" data-i18n="d1DTitle">Model call (1×)</text>
+        <text class="svg-copy" x="446" y="96" data-i18n="d1DCopy">label + confidence</text>
+
+        <rect class="box-strong" x="430" y="150" width="170" height="76"/>
+        <text class="svg-title" x="446" y="180" data-i18n="d1ETitle">Confidence gate</text>
+        <text class="svg-copy" x="446" y="202" data-i18n="d1ECopy">threshold = 0.7</text>
+
+        <rect class="box" x="622" y="30" width="140" height="68"/>
+        <text class="svg-title" x="636" y="58" data-i18n="d1FTitle">Assign category</text>
+        <text class="svg-copy" x="636" y="78" data-i18n="d1FCopy">confidence ≥ 0.7</text>
+
+        <rect class="box-strong" x="622" y="150" width="150" height="96"/>
+        <text class="svg-label" x="636" y="172" data-i18n="d1GLabel">QUEUE</text>
+        <text class="svg-title" x="636" y="194" data-i18n="d1GTitle">Human review queue</text>
+        <text class="svg-copy" x="636" y="216" data-i18n="d1GCopy">confidence &lt; 0.7</text>
+
+        <line class="line" x1="160" y1="182" x2="196" y2="178" marker-end="url(#arrow1)"/>
+        <line class="line" x1="285" y1="226" x2="285" y2="268" marker-end="url(#arrow1)"/>
+        <text class="svg-label" x="296" y="252" data-i18n="d1EdgeMatched">matched</text>
+        <line class="line" x1="370" y1="160" x2="426" y2="76" marker-end="url(#arrow1)"/>
+        <text class="svg-label" x="378" y="112" data-i18n="d1EdgeNoMatch">no match</text>
+        <line class="line" x1="515" y1="118" x2="515" y2="146" marker-end="url(#arrow1)"/>
+        <line class="line" x1="600" y1="165" x2="618" y2="90" marker-end="url(#arrow1)"/>
+        <text class="svg-label" x="604" y="135" data-i18n="d1EdgeGE">≥ 0.7</text>
+        <line class="line" x1="600" y1="200" x2="618" y2="198" marker-end="url(#arrow1)"/>
+        <text class="svg-label" x="600" y="190" data-i18n="d1EdgeLT">&lt; 0.7</text>
+      </svg>
+      <figcaption data-i18n="fig1Caption">Figure 1 · Orange boxes run automatically; boxes with a solid ink outline are decision points. A ticket either matches a keyword rule or falls through to one model call, and the confidence score decides who classifies it.</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li data-i18n-html="s3Step1"><strong>Rule match.</strong> The engine checks the ticket text against ~50 keyword rules. A hit assigns the category immediately, no model call needed.</li>
+      <li data-i18n-html="s3Step2"><strong>Model fallback.</strong> If no rule matches, exactly one model call classifies the ticket and returns a confidence score.</li>
+      <li data-i18n-html="s3Step3"><strong>Confidence gate.</strong> A score of 0.7 or higher auto-assigns the category. Below 0.7, the ticket goes to the human review queue.</li>
+    </ol>
+
+    <h3 data-i18n="s3RulesTitle">What the keyword rules look like</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th data-i18n="thRuleNum">Rule</th><th data-i18n="thRuleKeyword">Keyword or phrase</th><th data-i18n="thRuleCategory">Category</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>01</td><td class="dim" data-i18n="rule1Keyword">refund, chargeback, money back</td><td data-i18n="rule1Category">Billing → Refund</td></tr>
+          <tr><td>02</td><td class="dim" data-i18n="rule2Keyword">can't log in, password reset, locked out</td><td data-i18n="rule2Category">Account → Login</td></tr>
+          <tr><td>03</td><td class="dim" data-i18n="rule3Keyword">where is my order, shipping delay, tracking</td><td data-i18n="rule3Category">Logistics → Delivery</td></tr>
+          <tr><td>04</td><td class="dim" data-i18n="rule4Keyword">cancel subscription, close my account</td><td data-i18n="rule4Category">Billing → Cancellation</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p data-i18n="s3RuleNote">This is 4 of the roughly 50 rules. The full table is maintained separately and updated as new ticket patterns show up.</p>
+  </section>
+
+  <section id="workflow">
+    <div class="kicker" data-i18n="s4Kicker">04 · Workflow</div>
+    <h2 data-i18n="s4Title">Confidence decides who classifies the ticket</h2>
+    <p data-i18n="s4Intro">Every ticket follows the same five steps from submission to a final category. Only the last step branches between automation and a person.</p>
+
+    <ol class="steps">
+      <li data-i18n-html="s4Step1"><strong>Submit.</strong> The customer submits a ticket through the support form.</li>
+      <li data-i18n-html="s4Step2"><strong>Rule check.</strong> The keyword engine runs against the ticket text in real time.</li>
+      <li data-i18n-html="s4Step3"><strong>Model call.</strong> If no rule matches, one model call returns a category and a confidence score between 0 and 1.</li>
+      <li data-i18n-html="s4Step4"><strong>Route.</strong> Confidence at or above 0.7 assigns the category automatically. Below 0.7, the ticket is queued for a human.</li>
+      <li data-i18n-html="s4Step5"><strong>Record.</strong> The final category, whoever assigned it, is stored against the ticket for reporting and for measuring rule and model accuracy over time.</li>
+    </ol>
+
+    <h3 data-i18n="s4ContractTitle">What a classification result looks like</h3>
+    <pre data-i18n="s4ContractSample"># classification result attached to the ticket
+{
+  "ticketId": "T-48213",
+  "category": "billing.refund",
+  "confidence": 0.82,
+  "source": "rule" | "model",
+  "matchedRule": "rule_017"   # only present when source = "rule"
+}</pre>
+  </section>
+
+  <section id="rollout">
+    <div class="kicker" data-i18n="s5Kicker">05 · Rollout</div>
+    <h2 data-i18n="s5Title">Two weeks in shadow, then a 90% accuracy gate to go live</h2>
+    <p data-i18n="s5Intro">The pipeline never touches real routing until it has proven itself against human classification for two straight weeks.</p>
+
+    <figure>
+      <svg viewBox="0 0 780 310" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="diagram2Aria" aria-label="Shadow mode rollout timeline">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0.5 L7.5,4 L0,7.5" fill="none" stroke="#b9b9c2" stroke-width="1.2"/>
+          </marker>
+        </defs>
+
+        <rect class="box-accent" x="20" y="90" width="220" height="80"/>
+        <text class="svg-label" x="36" y="112" data-i18n="d2S1Label">PHASE 1</text>
+        <text class="svg-title" x="36" y="134" data-i18n="d2S1Title">Shadow mode</text>
+        <text class="svg-copy" x="36" y="156" data-i18n="d2S1Copy">2 weeks · parallel run</text>
+
+        <rect class="box-strong" x="290" y="90" width="200" height="80"/>
+        <text class="svg-title" x="306" y="124" data-i18n="d2GateTitle">Accuracy ≥ 90%?</text>
+        <text class="svg-copy" x="306" y="146" data-i18n="d2GateCopy">vs. human labels</text>
+
+        <rect class="box" x="560" y="16" width="200" height="80"/>
+        <text class="svg-label" x="576" y="38" data-i18n="d2LiveLabel">PHASE 2</text>
+        <text class="svg-title" x="576" y="58" data-i18n="d2LiveTitle">Switch to live routing</text>
+        <text class="svg-copy" x="576" y="78" data-i18n="d2LiveCopy">auto-routes tickets</text>
+
+        <rect class="box" x="560" y="190" width="200" height="80"/>
+        <text class="svg-title" x="576" y="222" data-i18n="d2ExtendTitle">Extend shadow mode</text>
+        <text class="svg-copy" x="576" y="244" data-i18n="d2ExtendCopy">tune rules &amp; prompt</text>
+
+        <line class="line" x1="240" y1="130" x2="286" y2="130" marker-end="url(#arrow2)"/>
+        <line class="line" x1="470" y1="105" x2="556" y2="60" marker-end="url(#arrow2)"/>
+        <text class="svg-label" x="478" y="80" data-i18n="d2EdgeYes">yes ≥ 90%</text>
+        <line class="line" x1="470" y1="150" x2="556" y2="205" marker-end="url(#arrow2)"/>
+        <text class="svg-label" x="478" y="185" data-i18n="d2EdgeNo">no, iterate</text>
+        <path class="line" d="M 660 270 C 660 296, 130 296, 130 172" stroke-dasharray="4 5" marker-end="url(#arrow2)"/>
+        <text class="svg-label" x="330" y="290" data-i18n="d2EdgeLoop">tune &amp; rerun</text>
+      </svg>
+      <figcaption data-i18n="fig2Caption">Figure 2 · Shadow mode runs in parallel for two weeks. The dashed line loops back to shadow mode when accuracy falls short; only clearing 90% opens the path to live routing.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th data-i18n="thPhase">Phase</th><th data-i18n="thDelivers">Delivers</th><th data-i18n="thMeasuredBy">Measured by</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td data-i18n="s5Phase1Name">Build &amp; tune</td><td class="dim" data-i18n="s5Phase1Delivery">Write the ~50 keyword rules from historical tickets and wire up the model call with the 0.7 confidence threshold.</td><td class="dim" data-i18n="s5Phase1Metric">Rule coverage on a sample of past tickets.</td></tr>
+          <tr><td>2</td><td data-i18n="s5Phase2Name">Shadow mode (2 weeks)</td><td class="dim" data-i18n="s5Phase2Delivery">Rules and model classify every incoming ticket in parallel with normal human triage; predictions are logged, not routed.</td><td class="dim" data-i18n="s5Phase2Metric">Daily accuracy against the human-assigned category.</td></tr>
+          <tr><td>3</td><td data-i18n="s5Phase3Name">Live switch</td><td class="dim" data-i18n="s5Phase3Delivery">Rule and model output becomes the real routing decision. Only tickets below 0.7 confidence still reach a human.</td><td class="dim" data-i18n="s5Phase3Metric">Accuracy holds at 90%+ after cutover, plus queue volume and per-category error rate.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title" data-i18n="s5CalloutTitle">Verify first</div>
+      <span data-i18n="s5CalloutCopy">Shadow mode must clear 90% accuracy against human labels before any ticket is auto-routed. If it doesn't, the rules and model prompt get tuned and shadow mode runs again, not skipped.</span>
+    </div>
+  </section>
+
+  <section id="questions">
+    <div class="kicker" data-i18n="s6Kicker">06 · Open Questions</div>
+    <h2 data-i18n="s6Title">Three decisions still open before build starts</h2>
+    <p data-i18n="s6Intro">These don't block writing the keyword rules or the pipeline, but they need an answer before rollout.</p>
+    <ul class="tight">
+      <li data-i18n-html="s6Item1"><strong>Model choice.</strong> Which model handles the fallback call, and whether it's shared across ticket categories or specialized per category.</li>
+      <li data-i18n-html="s6Item2"><strong>Rule ownership.</strong> Who adds and edits the ~50 keyword rules after launch, and how often they get reviewed against new ticket patterns.</li>
+      <li data-i18n-html="s6Item3"><strong>Queue size after cutover.</strong> What share of the 2,000 daily tickets will actually fall below 0.7 confidence. Shadow mode will produce the real number before launch.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+  const messages = {
+    en: {
+      metaTitle: 'Ticket Triage · Feature Plan',
+      languageLabel: 'Language',
+      projectName: 'Ticket Triage',
+      documentType: 'Feature Plan',
+      navOverview: 'Overview',
+      navChanges: 'What Changes',
+      navPipeline: 'Pipeline',
+      navWorkflow: 'Workflow',
+      navRollout: 'Rollout',
+      navQuestions: 'Open Questions',
+      navFoot: 'Draft for review<br>Support Eng · Ticket Triage',
+      s1Kicker: '01 · Overview',
+      s1Title: 'Cut manual sorting to only the tickets automation is unsure about',
+      s1Lede: 'Every support ticket gets sorted into a category before an agent can work it. This plan adds a rule engine and a single model call so only the unclear cases still need a human to decide.',
+      s1Row1Label: 'Purpose',
+      s1Row1Copy: "Classify every incoming ticket automatically, and only hand off the ones the system isn't confident about.",
+      s1Row2Label: 'Boundary',
+      s1Row2Copy: 'This system only assigns a category and a confidence score. It does not reply to the customer or resolve the ticket.',
+      s1Row3Label: 'Success',
+      s1Row3Copy: 'The pipeline matches human classification at 90% accuracy or higher, measured in shadow mode, before it ever routes a live ticket.',
+      s2Kicker: '02 · What Changes',
+      s2Title: '100 hours of manual sorting a day, shrunk to the unsure fraction',
+      s2Intro: 'Support agents read and categorize every ticket today. Rules and a model do that first now; agents step in only when confidence is low.',
+      thDimension: 'Dimension',
+      thToday: 'Today',
+      thTarget: 'Target',
+      s2Row1Label: 'Ownership',
+      s2Row1Today: 'A support agent reads and categorizes each of the ~2,000 tickets submitted per day.',
+      s2Row1Target: 'Rules and a model classify every ticket first. Agents only classify the ones below a 0.7 confidence score.',
+      s2Row2Label: 'Manual effort',
+      s2Row2Today: 'Manual classification averages 3 minutes a ticket, about 100 person-hours of sorting a day across 2,000 tickets.',
+      s2Row2Target: 'Manual effort drops to whatever share of tickets lands below the 0.7 threshold. Shadow mode measures the real number before launch.',
+      s2Row3Label: 'Validation',
+      s2Row3Today: 'There is no baseline for how consistent human classification is across agents.',
+      s2Row3Target: 'Two weeks of shadow-mode predictions are compared against human labels every day before the switch is allowed.',
+      s2CalloutTitle: 'Decision',
+      s2CalloutCopy: 'The pipeline only takes over routing once shadow-mode accuracy reaches 90% against human labels. Below that, it keeps running in parallel and agents keep classifying every ticket.',
+      s3Kicker: '03 · Classification Pipeline',
+      s3Title: 'Keyword rules first, one model call as fallback',
+      s3Intro: 'Around 50 keyword rules catch the clear-cut tickets instantly. Anything they miss gets exactly one model call, which returns a category and a confidence score.',
+      diagram1Aria: 'Ticket classification pipeline',
+      d1ATitle: 'Ticket submitted',
+      d1ACopy: '~2,000 a day',
+      d1BLabel: 'RULES',
+      d1BTitle: 'Rule engine',
+      d1BCopy: '~50 keyword rules',
+      d1CTitle: 'Category assigned',
+      d1CCopy: 'no model call',
+      d1DLabel: 'MODEL',
+      d1DTitle: 'Model call (1×)',
+      d1DCopy: 'label + confidence',
+      d1ETitle: 'Confidence gate',
+      d1ECopy: 'threshold = 0.7',
+      d1FTitle: 'Assign category',
+      d1FCopy: 'confidence ≥ 0.7',
+      d1GLabel: 'QUEUE',
+      d1GTitle: 'Human review queue',
+      d1GCopy: 'confidence < 0.7',
+      d1EdgeMatched: 'matched',
+      d1EdgeNoMatch: 'no match',
+      d1EdgeGE: '≥ 0.7',
+      d1EdgeLT: '< 0.7',
+      fig1Caption: 'Figure 1 · Orange boxes run automatically; boxes with a solid ink outline are decision points. A ticket either matches a keyword rule or falls through to one model call, and the confidence score decides who classifies it.',
+      s3Step1: '<strong>Rule match.</strong> The engine checks the ticket text against ~50 keyword rules. A hit assigns the category immediately, no model call needed.',
+      s3Step2: '<strong>Model fallback.</strong> If no rule matches, exactly one model call classifies the ticket and returns a confidence score.',
+      s3Step3: '<strong>Confidence gate.</strong> A score of 0.7 or higher auto-assigns the category. Below 0.7, the ticket goes to the human review queue.',
+      s3RulesTitle: 'What the keyword rules look like',
+      thRuleNum: 'Rule',
+      thRuleKeyword: 'Keyword or phrase',
+      thRuleCategory: 'Category',
+      rule1Keyword: 'refund, chargeback, money back',
+      rule1Category: 'Billing → Refund',
+      rule2Keyword: "can't log in, password reset, locked out",
+      rule2Category: 'Account → Login',
+      rule3Keyword: 'where is my order, shipping delay, tracking',
+      rule3Category: 'Logistics → Delivery',
+      rule4Keyword: 'cancel subscription, close my account',
+      rule4Category: 'Billing → Cancellation',
+      s3RuleNote: 'This is 4 of the roughly 50 rules. The full table is maintained separately and updated as new ticket patterns show up.',
+      s4Kicker: '04 · Workflow',
+      s4Title: 'Confidence decides who classifies the ticket',
+      s4Intro: 'Every ticket follows the same five steps from submission to a final category. Only the last step branches between automation and a person.',
+      s4Step1: '<strong>Submit.</strong> The customer submits a ticket through the support form.',
+      s4Step2: '<strong>Rule check.</strong> The keyword engine runs against the ticket text in real time.',
+      s4Step3: '<strong>Model call.</strong> If no rule matches, one model call returns a category and a confidence score between 0 and 1.',
+      s4Step4: '<strong>Route.</strong> Confidence at or above 0.7 assigns the category automatically. Below 0.7, the ticket is queued for a human.',
+      s4Step5: '<strong>Record.</strong> The final category, whoever assigned it, is stored against the ticket for reporting and for measuring rule and model accuracy over time.',
+      s4ContractTitle: 'What a classification result looks like',
+      s4ContractSample: '# classification result attached to the ticket\n{\n  "ticketId": "T-48213",\n  "category": "billing.refund",\n  "confidence": 0.82,\n  "source": "rule" | "model",\n  "matchedRule": "rule_017"   # only present when source = "rule"\n}',
+      s5Kicker: '05 · Rollout',
+      s5Title: 'Two weeks in shadow, then a 90% accuracy gate to go live',
+      s5Intro: 'The pipeline never touches real routing until it has proven itself against human classification for two straight weeks.',
+      diagram2Aria: 'Shadow mode rollout timeline',
+      d2S1Label: 'PHASE 1',
+      d2S1Title: 'Shadow mode',
+      d2S1Copy: '2 weeks · parallel run',
+      d2GateTitle: 'Accuracy ≥ 90%?',
+      d2GateCopy: 'vs. human labels',
+      d2LiveLabel: 'PHASE 2',
+      d2LiveTitle: 'Switch to live routing',
+      d2LiveCopy: 'auto-routes tickets',
+      d2ExtendTitle: 'Extend shadow mode',
+      d2ExtendCopy: 'tune rules & prompt',
+      d2EdgeYes: 'yes ≥ 90%',
+      d2EdgeNo: 'no, iterate',
+      d2EdgeLoop: 'tune & rerun',
+      fig2Caption: 'Figure 2 · Shadow mode runs in parallel for two weeks. The dashed line loops back to shadow mode when accuracy falls short; only clearing 90% opens the path to live routing.',
+      thPhase: 'Phase',
+      thDelivers: 'Delivers',
+      thMeasuredBy: 'Measured by',
+      s5Phase1Name: 'Build & tune',
+      s5Phase1Delivery: 'Write the ~50 keyword rules from historical tickets and wire up the model call with the 0.7 confidence threshold.',
+      s5Phase1Metric: 'Rule coverage on a sample of past tickets.',
+      s5Phase2Name: 'Shadow mode (2 weeks)',
+      s5Phase2Delivery: 'Rules and model classify every incoming ticket in parallel with normal human triage; predictions are logged, not routed.',
+      s5Phase2Metric: 'Daily accuracy against the human-assigned category.',
+      s5Phase3Name: 'Live switch',
+      s5Phase3Delivery: 'Rule and model output becomes the real routing decision. Only tickets below 0.7 confidence still reach a human.',
+      s5Phase3Metric: 'Accuracy holds at 90%+ after cutover, plus queue volume and per-category error rate.',
+      s5CalloutTitle: 'Verify first',
+      s5CalloutCopy: "Shadow mode must clear 90% accuracy against human labels before any ticket is auto-routed. If it doesn't, the rules and model prompt get tuned and shadow mode runs again, not skipped.",
+      s6Kicker: '06 · Open Questions',
+      s6Title: 'Three decisions still open before build starts',
+      s6Intro: "These don't block writing the keyword rules or the pipeline, but they need an answer before rollout.",
+      s6Item1: "<strong>Model choice.</strong> Which model handles the fallback call, and whether it's shared across ticket categories or specialized per category.",
+      s6Item2: '<strong>Rule ownership.</strong> Who adds and edits the ~50 keyword rules after launch, and how often they get reviewed against new ticket patterns.',
+      s6Item3: '<strong>Queue size after cutover.</strong> What share of the 2,000 daily tickets will actually fall below 0.7 confidence. Shadow mode will produce the real number before launch.'
+    },
+    zh: {
+      metaTitle: '工单智能分类 · 功能方案',
+      languageLabel: '语言',
+      projectName: '工单智能分类',
+      documentType: '功能方案',
+      navOverview: '概览',
+      navChanges: '会变什么',
+      navPipeline: '分类流水线',
+      navWorkflow: '工作流程',
+      navRollout: '上线路线',
+      navQuestions: '待定问题',
+      navFoot: '评审草案<br>客服工程 · 工单分类',
+      s1Kicker: '01 · 概览',
+      s1Title: '把人工分拣，收窄到自动化拿不准的那部分',
+      s1Lede: '每张工单在坐席处理前都要先归类。这份方案加入规则引擎和一次模型调用，只有拿不准的工单才需要人工判断。',
+      s1Row1Label: '目的',
+      s1Row1Copy: '自动为每张新工单归类，只把系统没把握的工单交给人工。',
+      s1Row2Label: '边界',
+      s1Row2Copy: '这套系统只负责打上分类标签和置信度，不负责回复客户或解决工单。',
+      s1Row3Label: '成功标准',
+      s1Row3Copy: '在正式接管路由之前，流水线在影子模式下对比人工结果的准确率必须达到 90% 以上。',
+      s2Kicker: '02 · 会变什么',
+      s2Title: '每天 100 人时的人工分拣，收窄到拿不准的那部分',
+      s2Intro: '现在坐席要阅读并归类每一张工单。上线后规则和模型先做这件事，只有置信度低时坐席才介入。',
+      thDimension: '维度',
+      thToday: '现状',
+      thTarget: '目标',
+      s2Row1Label: '所有权',
+      s2Row1Today: '每天约 2,000 张工单，全部由坐席逐一阅读并归类。',
+      s2Row1Target: '规则和模型先为每张工单分类，坐席只处理置信度低于 0.7 的那部分。',
+      s2Row2Label: '人工投入',
+      s2Row2Today: '人工分类平均每单 3 分钟，2,000 单相当于每天约 100 人时。',
+      s2Row2Target: '人工投入降到置信度低于 0.7 的那部分工单。真实占比会在影子模式期间测出来，上线前给出结论。',
+      s2Row3Label: '校验',
+      s2Row3Today: '目前没有衡量坐席之间分类一致性的基线。',
+      s2Row3Target: '上线前，流水线预测结果要与人工标签连续对比两周，每天都看差距。',
+      s2CalloutTitle: '决策',
+      s2CalloutCopy: '只有影子模式的准确率达到 90%，流水线才能接管路由。达不到之前，它只在旁路运行，坐席继续给每张工单分类。',
+      s3Kicker: '03 · 分类流水线',
+      s3Title: '先过关键词规则，规则未命中才调用一次模型',
+      s3Intro: '约 50 条关键词规则先拦下明显的工单，规则未命中的才会触发一次模型调用，返回分类和置信度。',
+      diagram1Aria: '工单分类流水线',
+      d1ATitle: '工单提交',
+      d1ACopy: '每天约 2,000 单',
+      d1BLabel: '规则',
+      d1BTitle: '规则引擎',
+      d1BCopy: '约 50 条关键词规则',
+      d1CTitle: '已完成分类',
+      d1CCopy: '无需模型调用',
+      d1DLabel: '模型',
+      d1DTitle: '模型调用（1 次）',
+      d1DCopy: '返回分类和置信度',
+      d1ETitle: '置信度判断',
+      d1ECopy: '阈值 = 0.7',
+      d1FTitle: '自动分类',
+      d1FCopy: '置信度 ≥ 0.7',
+      d1GLabel: '队列',
+      d1GTitle: '人工审核队列',
+      d1GCopy: '置信度 < 0.7',
+      d1EdgeMatched: '命中',
+      d1EdgeNoMatch: '未命中',
+      d1EdgeGE: '≥ 0.7',
+      d1EdgeLT: '< 0.7',
+      fig1Caption: '图 1 · 橙色边框的模块自动运行；实心墨色边框是决策点。工单要么命中关键词规则，要么落到一次模型调用，置信度决定最终由谁来分类。',
+      s3Step1: '<strong>规则匹配。</strong>引擎用约 50 条关键词规则检查工单文本，命中就直接打上分类，不需要调用模型。',
+      s3Step2: '<strong>模型兜底。</strong>规则都没命中时，调用一次模型给工单分类，并返回置信度。',
+      s3Step3: '<strong>置信度门槛。</strong>置信度 0.7 及以上自动打标；低于 0.7 的工单进入人工审核队列。',
+      s3RulesTitle: '关键词规则长什么样',
+      thRuleNum: '规则',
+      thRuleKeyword: '关键词 / 短语',
+      thRuleCategory: '分类',
+      rule1Keyword: '退款、拒付、退钱',
+      rule1Category: '账单 → 退款',
+      rule2Keyword: '无法登录、重置密码、账号被锁',
+      rule2Category: '账户 → 登录',
+      rule3Keyword: '订单在哪、发货延迟、物流跟踪',
+      rule3Category: '物流 → 配送',
+      rule4Keyword: '取消订阅、注销账号',
+      rule4Category: '账单 → 取消订阅',
+      s3RuleNote: '以上是约 50 条规则中的 4 条示例，完整规则表另行维护，并随新出现的工单模式持续更新。',
+      s4Kicker: '04 · 工作流程',
+      s4Title: '置信度决定谁来做最终分类',
+      s4Intro: '每张工单从提交到最终归类都走同样的五步，只有最后一步会在自动化和人工之间分叉。',
+      s4Step1: '<strong>提交。</strong>客户通过工单表单提交问题。',
+      s4Step2: '<strong>规则检查。</strong>关键词引擎实时扫描工单文本。',
+      s4Step3: '<strong>模型调用。</strong>规则未命中时，调用一次模型，返回分类和 0 到 1 之间的置信度。',
+      s4Step4: '<strong>路由。</strong>置信度达到 0.7 自动分类；低于 0.7 的工单进入人工队列等待处理。',
+      s4Step5: '<strong>记录。</strong>无论谁给出最终分类，都会存档，用于报表以及持续衡量规则和模型的准确率。',
+      s4ContractTitle: '分类结果的样子',
+      s4ContractSample: '# 附加到工单上的分类结果\n{\n  "ticketId": "T-48213",\n  "category": "billing.refund",\n  "confidence": 0.82,\n  "source": "rule" | "model",\n  "matchedRule": "rule_017"   # 仅当 source 为 "rule" 时出现\n}',
+      s5Kicker: '05 · 上线路线',
+      s5Title: '先跑两周影子模式，准确率过 90% 才能上线',
+      s5Intro: '在连续两周对比人工分类结果、证明自己靠谱之前，流水线不会碰真实的工单路由。',
+      diagram2Aria: '影子模式上线时间线',
+      d2S1Label: '阶段一',
+      d2S1Title: '影子模式',
+      d2S1Copy: '两周 · 并行运行',
+      d2GateTitle: '准确率 ≥ 90%？',
+      d2GateCopy: '对比人工标签',
+      d2LiveLabel: '阶段二',
+      d2LiveTitle: '切换为正式路由',
+      d2LiveCopy: '自动路由工单',
+      d2ExtendTitle: '延长影子模式',
+      d2ExtendCopy: '调优规则与提示词',
+      d2EdgeYes: '是，≥ 90%',
+      d2EdgeNo: '否，继续迭代',
+      d2EdgeLoop: '调优后重跑',
+      fig2Caption: '图 2 · 影子模式并行运行两周。准确率不达标时沿虚线回到影子模式重跑；只有达到 90% 才能打开通往正式上线的闸门。',
+      thPhase: '阶段',
+      thDelivers: '交付内容',
+      thMeasuredBy: '衡量指标',
+      s5Phase1Name: '建设与调优',
+      s5Phase1Delivery: '根据历史工单整理约 50 条关键词规则，接入模型调用并设置 0.7 置信度阈值。',
+      s5Phase1Metric: '历史工单样本上的规则覆盖率。',
+      s5Phase2Name: '影子模式（2 周）',
+      s5Phase2Delivery: '规则和模型对每张新工单并行分类，与正常人工分诊同时进行；预测结果只记录，不参与路由。',
+      s5Phase2Metric: '每日与人工分类结果对比的准确率。',
+      s5Phase3Name: '正式上线',
+      s5Phase3Delivery: '规则和模型的输出成为真正的路由依据，只有置信度低于 0.7 的工单还会进入人工队列。',
+      s5Phase3Metric: '切换后准确率维持在 90% 以上，并跟踪队列量与各分类的错误率。',
+      s5CalloutTitle: '上线前先验证',
+      s5CalloutCopy: '任何工单被自动路由之前，影子模式必须对比人工标签达到 90% 准确率。达不到就调整规则和模型提示词，再跑一轮影子模式，而不是跳过这一步。',
+      s6Kicker: '06 · 待定问题',
+      s6Title: '开工前还有三个待定问题',
+      s6Intro: '这些问题不影响先写关键词规则和搭建流水线，但要在上线前定下来。',
+      s6Item1: '<strong>模型选型。</strong>兜底调用用哪个模型，是所有分类共用一个，还是按分类做专门的模型。',
+      s6Item2: '<strong>规则维护责任人。</strong>上线后谁来新增和修改这约 50 条关键词规则，多久对照新出现的工单模式复查一次。',
+      s6Item3: '<strong>切换后的队列规模。</strong>每天 2,000 张工单里，到底有多少会落在置信度 0.7 以下。真实数字要靠影子模式跑出来，上线前才能确定。'
+    }
+  };
+
+  const languageButtons = document.querySelectorAll('[data-language]');
+  const storageKey = 'bilingual-technical-page-language';
+
+  function setLanguage(language) {
+    const copy = messages[language];
+
+    document.querySelectorAll('[data-i18n]').forEach((element) => {
+      const value = copy[element.dataset.i18n];
+      if (value !== undefined) element.textContent = value;
+    });
+
+    document.querySelectorAll('[data-i18n-html]').forEach((element) => {
+      const value = copy[element.dataset.i18nHtml];
+      if (value !== undefined) element.innerHTML = value;
+    });
+
+    document.querySelectorAll('[data-i18n-aria]').forEach((element) => {
+      const value = copy[element.dataset.i18nAria];
+      if (value !== undefined) element.setAttribute('aria-label', value);
+    });
+
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+    document.title = copy.metaTitle;
+    languageButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.language === language));
+    });
+
+    try { localStorage.setItem(storageKey, language); } catch {}
+  }
+
+  languageButtons.forEach((button) => {
+    button.addEventListener('click', () => setLanguage(button.dataset.language));
+  });
+
+  let initialLanguage = 'en';
+  try {
+    if (localStorage.getItem(storageKey) === 'zh') initialLanguage = 'zh';
+  } catch {}
+  setLanguage(initialLanguage);
+
+  const links = document.querySelectorAll('nav ol a');
+  const sections = [...document.querySelectorAll('main section')];
+  const linksById = Object.fromEntries(
+    [...links].map((link) => [link.getAttribute('href').slice(1), link])
+  );
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      links.forEach((link) => link.classList.remove('active'));
+      linksById[entry.target.id]?.classList.add('active');
+    }
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach((section) => observer.observe(section));
+</script>
+</body>
+</html>

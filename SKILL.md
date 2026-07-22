@@ -57,7 +57,8 @@ build a toggle nobody asked for.
 - Single language: strip both language controls (the sidebar switcher and
   the mobile header's language dropdown — keep the mobile header itself,
   brand only) plus the `messages`/`setLanguage` script; keep the content
-  inline. No dead UI.
+  inline. No dead UI. Keep the reading-time/progress block (it self-runs
+  when `setLanguage` is absent).
 - Multiple languages: follow the i18n contract below.
 
 ### i18n contract (multilingual pages only)
@@ -98,8 +99,9 @@ Default destination when none is given: a new folder under the workspace's
 
 Keep the framework as-is: 232px sidebar, white canvas, ink headings, orange
 accent, Space Grotesk / Inter / JetBrains Mono, numbered nav with
-active-section tracking, mobile layout. Do not turn it into a landing page,
-hero page, or card grid.
+active-section tracking, reading-time estimate and scroll progress (sidebar
+on desktop, header bars on mobile), mobile layout. Do not turn it into a
+landing page, hero page, or card grid.
 
 Choose 4 to 9 sections with short stable IDs, sidebar and page in the same
 order. A typical plan runs: overview → what changes → architecture →

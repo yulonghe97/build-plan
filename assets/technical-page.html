@@ -70,6 +70,26 @@
     font-family: var(--mono);
     font-size: 11px;
   }
+  .nav-brand .read-time {
+    margin-top: 12px;
+    color: var(--faint);
+  }
+  .read-progress {
+    width: 176px;
+    height: 3px;
+    margin: 10px 28px 24px;
+    border-radius: 2px;
+    background: var(--hairline);
+    overflow: hidden;
+  }
+  .read-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 80ms linear;
+  }
 
   .language-switcher {
     display: grid;
@@ -278,7 +298,8 @@
 
   /* Mobile fixed header + section bar. Hidden on desktop; replaces the sidebar there. */
   .mobile-header,
-  .mobile-section-nav { display: none; }
+  .mobile-section-nav,
+  .mobile-progress { display: none; }
   @media (max-width: 900px) {
     nav { display: none; }
     main { margin-left: 0; padding: 118px 24px 80px; }
@@ -404,11 +425,18 @@
       font-family: var(--mono);
       font-size: 11px;
     }
+    .msn-time {
+      margin-left: auto;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+    }
     .mobile-section-nav > button::after {
       content: "";
       width: 6px;
       height: 6px;
-      margin-left: auto;
+      margin-left: 8px;
       align-self: center;
       margin-top: -3px;
       border-right: 1.4px solid var(--muted);
@@ -447,6 +475,21 @@
       font-weight: 600;
     }
     .msn-list a.active .number { color: var(--accent); }
+    .mobile-progress {
+      display: block;
+      position: fixed;
+      z-index: 18;
+      inset: 92px 0 auto 0;
+      height: 2px;
+      background: transparent;
+    }
+    .mobile-progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 80ms linear;
+    }
     h2 { font-size: 24px; }
     figure { padding: 20px 14px 16px; }
   }
@@ -461,7 +504,9 @@
     <span class="dot"></span>
     <h1 data-i18n="projectName">Project Name</h1>
     <p data-i18n="documentType">Technical Design Plan</p>
+    <p class="read-time" data-read-time></p>
   </div>
+  <div class="read-progress" aria-hidden="true"><span data-progress-fill></span></div>
 
   <div class="language-switcher" role="group" data-i18n-aria="languageLabel" aria-label="Language">
     <button type="button" data-language="en" aria-pressed="true">EN</button>
@@ -503,9 +548,11 @@
   <button type="button" aria-haspopup="true" aria-expanded="false">
     <span class="msn-number"></span>
     <span class="msn-label"></span>
+    <span class="msn-time" data-read-time></span>
   </button>
   <ul class="msn-list"></ul>
 </div>
+<div class="mobile-progress" aria-hidden="true"><span data-progress-fill></span></div>
 
 <main>
   <section id="overview">
@@ -833,8 +880,8 @@ POST /api/v1/resources/:id/revisions</pre>
   // language in the sidebar switcher and the mobile dropdown. Nothing else
   // in this script is language-specific.
   const languages = {
-    en: { htmlLang: 'en', label: 'EN' },
-    zh: { htmlLang: 'zh-CN', label: '中文' }
+    en: { htmlLang: 'en', label: 'EN', readTime: (minutes) => `~${minutes} min read` },
+    zh: { htmlLang: 'zh-CN', label: '中文', readTime: (minutes) => `约 ${minutes} 分钟读完` }
   };
 
   const languageButtons = document.querySelectorAll('[data-language]');
@@ -869,6 +916,7 @@ POST /api/v1/resources/:id/revisions</pre>
     if (langLabel) langLabel.textContent = languages[language]?.label ?? language;
     closeLangMenu();
     if (sectionNavReady) rebuildSectionNav();
+    updateReadingTime(language);
 
     try { localStorage.setItem(storageKey, language); } catch {}
   }
@@ -972,6 +1020,42 @@ POST /api/v1/resources/:id/revisions</pre>
     });
     rebuildSectionNav();
     sectionNavReady = true;
+  }
+
+  // Reading time estimate + scroll progress. Language-agnostic: reading
+  // speed is ~200 latin words or ~350 CJK characters per minute. On
+  // single-language pages (no setLanguage), the trailing call below keeps
+  // both features alive — do not strip this block with the i18n script.
+  function updateReadingTime(language) {
+    const main = document.querySelector('main');
+    if (!main) return;
+    const text = main.innerText || '';
+    const cjkCount = (text.match(/[⺀-鿿豈-﫿]/g) || []).length;
+    const words = text
+      .replace(/[⺀-鿿豈-﫿]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean).length;
+    const minutes = Math.max(1, Math.round(words / 200 + cjkCount / 350));
+    const format =
+      (typeof languages !== 'undefined' && languages[language]?.readTime) ||
+      ((m) => `~${m} min read`);
+    document.querySelectorAll('[data-read-time]').forEach((el) => {
+      el.textContent = format(minutes);
+    });
+  }
+
+  function updateReadProgress() {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+    document.querySelectorAll('[data-progress-fill]').forEach((el) => {
+      el.style.width = `${pct}%`;
+    });
+  }
+  window.addEventListener('scroll', updateReadProgress, { passive: true });
+  window.addEventListener('resize', updateReadProgress, { passive: true });
+  updateReadProgress();
+  if (typeof setLanguage === 'undefined') {
+    updateReadingTime(document.documentElement.lang);
   }
 </script>
 </body>

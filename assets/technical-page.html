@@ -275,11 +275,12 @@
   .box-accent { fill: #fff; stroke: var(--accent); stroke-width: 1.2; rx: 6; }
   .line { fill: none; stroke: #b9b9c2; stroke-width: 1.2; }
 
-  /* Mobile fixed header. Hidden on desktop; replaces the sidebar there. */
-  .mobile-header { display: none; }
+  /* Mobile fixed header + section bar. Hidden on desktop; replaces the sidebar there. */
+  .mobile-header,
+  .mobile-section-nav { display: none; }
   @media (max-width: 900px) {
     nav { display: none; }
-    main { margin-left: 0; padding: 84px 24px 80px; }
+    main { margin-left: 0; padding: 118px 24px 80px; }
     .mobile-header {
       display: flex;
       position: fixed;
@@ -373,6 +374,78 @@
       content: "✓";
       color: var(--accent);
     }
+    .mobile-section-nav {
+      display: block;
+      position: fixed;
+      z-index: 19;
+      inset: 52px 0 auto 0;
+      background: rgb(255 255 255 / 92%);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .mobile-section-nav > button {
+      display: flex;
+      width: 100%;
+      align-items: baseline;
+      gap: 10px;
+      height: 40px;
+      padding: 0 16px;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .msn-number {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .mobile-section-nav > button::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      margin-left: auto;
+      align-self: center;
+      margin-top: -3px;
+      border-right: 1.4px solid var(--muted);
+      border-bottom: 1.4px solid var(--muted);
+      transform: rotate(45deg);
+    }
+    .msn-list {
+      display: none;
+      max-height: 60vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: 6px 8px 10px;
+      list-style: none;
+      border-top: 1px solid var(--hairline);
+    }
+    .mobile-section-nav.open { background: #fff; }
+    .mobile-section-nav.open .msn-list { display: block; }
+    .msn-list a {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .msn-list a .number {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .msn-list a.active {
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .msn-list a.active .number { color: var(--accent); }
     h2 { font-size: 24px; }
     figure { padding: 20px 14px 16px; }
   }
@@ -422,6 +495,16 @@
     </ul>
   </div>
 </header>
+
+<!-- Mobile section bar: the list is built by script from the sidebar nav,
+     so it stays in sync with sections and translations automatically. -->
+<div class="mobile-section-nav" data-section-nav>
+  <button type="button" aria-haspopup="true" aria-expanded="false">
+    <span class="msn-number"></span>
+    <span class="msn-label"></span>
+  </button>
+  <ul class="msn-list"></ul>
+</div>
 
 <main>
   <section id="overview">
@@ -746,6 +829,7 @@ POST /api/v1/resources/:id/revisions</pre>
 
   const languageButtons = document.querySelectorAll('[data-language]');
   const storageKey = 'bilingual-technical-page-language';
+  let sectionNavReady = false;
 
   function setLanguage(language) {
     const copy = messages[language];
@@ -774,6 +858,7 @@ POST /api/v1/resources/:id/revisions</pre>
     const langLabel = document.querySelector('.lang-menu-label');
     if (langLabel) langLabel.textContent = language === 'zh' ? '中文' : 'EN';
     closeLangMenu();
+    if (sectionNavReady) rebuildSectionNav();
 
     try { localStorage.setItem(storageKey, language); } catch {}
   }
@@ -817,10 +902,66 @@ POST /api/v1/resources/:id/revisions</pre>
       if (!entry.isIntersecting) continue;
       links.forEach((link) => link.classList.remove('active'));
       linksById[entry.target.id]?.classList.add('active');
+      updateSectionNav(entry.target.id);
     }
   }, { rootMargin: '-20% 0px -70% 0px' });
 
   sections.forEach((section) => observer.observe(section));
+
+  // Mobile section bar: mirrors the sidebar nav (labels, order, translations).
+  const sectionNav = document.querySelector('[data-section-nav]');
+  let currentSectionId = sections[0]?.id ?? null;
+
+  function rebuildSectionNav() {
+    if (!sectionNav) return;
+    const list = sectionNav.querySelector('.msn-list');
+    list.innerHTML = '';
+    document.querySelectorAll('nav ol a').forEach((link) => {
+      const spans = link.querySelectorAll('span');
+      const item = document.createElement('li');
+      const anchor = document.createElement('a');
+      anchor.href = link.getAttribute('href');
+      const number = document.createElement('span');
+      number.className = 'number';
+      number.textContent = spans[0] ? spans[0].textContent : '';
+      const label = document.createElement('span');
+      label.textContent = spans[1] ? spans[1].textContent : link.textContent.trim();
+      anchor.append(number, label);
+      anchor.addEventListener('click', () => toggleSectionNav(false));
+      item.append(anchor);
+      list.append(item);
+    });
+    updateSectionNav(currentSectionId);
+  }
+
+  function updateSectionNav(id) {
+    if (!sectionNav) return;
+    if (id) currentSectionId = id;
+    const active = linksById[currentSectionId] ?? links[0];
+    if (!active) return;
+    const spans = active.querySelectorAll('span');
+    sectionNav.querySelector('.msn-number').textContent = spans[0]?.textContent ?? '';
+    sectionNav.querySelector('.msn-label').textContent = spans[1]?.textContent ?? active.textContent.trim();
+    sectionNav.querySelectorAll('.msn-list a').forEach((anchor) => {
+      anchor.classList.toggle('active', anchor.getAttribute('href') === `#${currentSectionId}`);
+    });
+  }
+
+  function toggleSectionNav(force) {
+    if (!sectionNav) return;
+    const open = sectionNav.classList.toggle('open', force);
+    sectionNav.querySelector(':scope > button').setAttribute('aria-expanded', String(open));
+    if (open && typeof closeLangMenu === 'function') closeLangMenu();
+  }
+
+  if (sectionNav) {
+    sectionNav.querySelector(':scope > button').addEventListener('click', () => toggleSectionNav());
+    document.addEventListener('click', (event) => {
+      if (!sectionNav.contains(event.target)) toggleSectionNav(false);
+    });
+    rebuildSectionNav();
+    sectionNavReady = true;
+  }
 </script>
 </body>
 </html>

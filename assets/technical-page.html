@@ -73,7 +73,8 @@
 
   .language-switcher {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     width: 176px;
     margin: 0 28px 24px;
     border: 1px solid var(--hairline);
@@ -695,13 +696,13 @@ POST /api/v1/resources/:id/revisions</pre>
       diagramClientCopy: 'web · CLI · integrations',
       diagramCoreLabel: 'CORE',
       diagramCore: 'Domain service',
-      diagramCoreCopy: 'policy · workflow · validation',
+      diagramCoreCopy: 'policy · validation',
       diagramEvidence: 'Evidence sources',
-      diagramEvidenceCopy: 'database · APIs · telemetry',
+      diagramEvidenceCopy: 'database · telemetry',
       diagramStore: 'Durable state',
-      diagramStoreCopy: 'revisions · checks · provenance',
+      diagramStoreCopy: 'revisions · checks',
       diagramBoundary: 'HARD BOUNDARY',
-      diagramBoundaryCopy: 'Keep money and mutations outside.',
+      diagramBoundaryCopy: 'Money stays outside.',
       architectureCaption: "Figure 1 · Replace with the system's real components and trust boundaries.",
       architectureStep1: '<strong>Inputs.</strong> Explain where intent and authenticated context enter.',
       architectureStep2: '<strong>Core.</strong> Explain the domain logic and deterministic boundaries.',
@@ -827,8 +828,17 @@ POST /api/v1/resources/:id/revisions</pre>
     }
   };
 
+  // One entry per language on the page. To add or change languages: edit
+  // this map, add a matching dictionary in `messages`, and a button per
+  // language in the sidebar switcher and the mobile dropdown. Nothing else
+  // in this script is language-specific.
+  const languages = {
+    en: { htmlLang: 'en', label: 'EN' },
+    zh: { htmlLang: 'zh-CN', label: '中文' }
+  };
+
   const languageButtons = document.querySelectorAll('[data-language]');
-  const storageKey = 'bilingual-technical-page-language';
+  const storageKey = 'build-plan-page-language';
   let sectionNavReady = false;
 
   function setLanguage(language) {
@@ -849,14 +859,14 @@ POST /api/v1/resources/:id/revisions</pre>
       if (value !== undefined) element.setAttribute('aria-label', value);
     });
 
-    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+    document.documentElement.lang = languages[language]?.htmlLang ?? language;
     document.title = copy.metaTitle;
     languageButtons.forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.language === language));
     });
 
     const langLabel = document.querySelector('.lang-menu-label');
-    if (langLabel) langLabel.textContent = language === 'zh' ? '中文' : 'EN';
+    if (langLabel) langLabel.textContent = languages[language]?.label ?? language;
     closeLangMenu();
     if (sectionNavReady) rebuildSectionNav();
 
@@ -885,9 +895,10 @@ POST /api/v1/resources/:id/revisions</pre>
     });
   }
 
-  let initialLanguage = 'en';
+  let initialLanguage = Object.keys(languages)[0];
   try {
-    if (localStorage.getItem(storageKey) === 'zh') initialLanguage = 'zh';
+    const stored = localStorage.getItem(storageKey);
+    if (stored && languages[stored]) initialLanguage = stored;
   } catch {}
   setLanguage(initialLanguage);
 

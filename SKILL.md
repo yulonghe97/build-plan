@@ -1,6 +1,6 @@
 ---
 name: build-plan
-description: Build a polished, self-contained HTML plan page (build plan, technical design plan, proposal, playbook, working doc) in the restrained white/ink/orange sidebar style, written in plain language with SVG diagrams carrying the ideas. Handles the user's repo logo, an optional second language (e.g. EN/中文 toggle), and optional publishing to artifact.cafe for review. Use whenever the user asks for a build plan, design plan, technical planning doc, proposal page, review-ready plan HTML, "输出成 HTML 的方案", or wants to reuse the Campaign Agent plan look — even if they just say "make a plan page" without naming the style.
+description: Build a polished, self-contained HTML plan page (build plan, technical design plan, proposal, playbook, working doc) in the restrained white/ink/orange sidebar style, written in plain language with SVG diagrams carrying the ideas. Handles the user's repo logo, optional additional languages (any, and more than two; EN/中文 is just one example pair), and optional publishing to artifact.cafe for review. Use whenever the user asks for a build plan, design plan, technical planning doc, proposal page, review-ready plan HTML, "输出成 HTML 的方案", or wants to reuse the Campaign Agent plan look — even if they just say "make a plan page" without naming the style.
 ---
 
 # build-plan
@@ -49,28 +49,37 @@ Default is **one language**: the language the user is working in. Do not
 build a toggle nobody asked for.
 
 - No remembered preference: after understanding the content, ask once
-  whether they want a second language on the page (e.g. "want this bilingual
-  with an EN/中文 toggle, or single-language?"). Record the answer.
+  whether they want the page in additional languages. Any languages work
+  and more than two is fine; EN/中文 is just the common pair around here.
+  Record the answer as a list (e.g. `["en", "zh-CN"]` or
+  `["en", "ja", "de"]`).
 - Remembered preference: follow it without asking.
 - Single language: strip both language controls (the sidebar switcher and
   the mobile header's language dropdown — keep the mobile header itself,
   brand only) plus the `messages`/`setLanguage` script; keep the content
   inline. No dead UI.
-- Two languages: follow the i18n contract below.
+- Multiple languages: follow the i18n contract below.
 
-### i18n contract (bilingual pages only)
+### i18n contract (multilingual pages only)
+
+The template ships with `en` + `zh` as a worked example, but the mechanism
+is N-language: to change or add languages, edit the `languages` map (button
+label + `<html lang>` value), add one dictionary per language in
+`messages`, and one button per language in each switcher. Nothing else in
+the script is language-specific.
 
 - Plain text behind `data-i18n="key"`; trusted static markup (inline `code`,
   `strong`, links) behind `data-i18n-html="key"`; aria labels behind
   `data-i18n-aria`; SVG `<text>` labels get keys too.
-- Every key exists in both dictionaries, non-empty, no unused keys. The
-  bundled validator enforces exactly this.
+- Every key exists in every language dictionary, non-empty, no unused keys.
+  The bundled validator enforces exactly this across all dictionaries.
 - Keep section IDs and URLs language-neutral. Persist the choice in
   `localStorage`; update `<html lang>` and `document.title` on switch.
 - Technical identifiers, commands, paths, API fields, and model names stay
-  exact in both languages.
-- Translate meaning, not words. Chinese may be more concise where a literal
-  translation hurts scanning; both versions follow the same writing rules.
+  exact in every language.
+- Translate meaning, not words. A translation may be more concise than the
+  source where literal wording hurts scanning; every language follows the
+  same writing rules.
 
 ## Step 3 · Build the page
 
@@ -122,7 +131,8 @@ exists so they can skim the page once and still make the right call.
   precondition, a binding decision. More than ~3 callouts per page and they
   stop being signals.
 - **No em-dashes.** Use periods, commas, or parentheses.
-- Both languages follow all of the above. 中文同样拒绝黑话和长段落.
+- Every language on the page follows all of the above (中文同样拒绝黑话和长段落,
+  and the same goes for any other language you add).
 
 ### Diagram rules
 
@@ -148,8 +158,8 @@ genuinely a list.
   about 20 latin or 12 CJK characters per line. Shorten the label, don't
   shrink the font.
 - The validator estimates every SVG text's width against its enclosing box,
-  including the 中文 dictionary variant on bilingual pages, and fails on
-  likely overflows. Treat every flag as real. The estimate can't see
+  including every language's dictionary variant on multilingual pages, and
+  fails on likely overflows. Treat every flag as real. The estimate can't see
   kerning or collisions between neighboring floating labels, so still
   screenshot-check the final figures.
 
@@ -169,20 +179,20 @@ playbook), skip it for reference docs. If used:
   `ann-w` puts the label in the right margin with the arrow pointing west
   into the text — that is the one you usually want. Getting this backwards
   puts labels on top of body text; screenshot-verify placement.
-- **Bilingual pages: annotations live inside the dictionary strings.** The
-  language switch replaces innerHTML, so a note only present in the English
-  markup vanishes in 中文. Embed the annotation markup (with a translated
-  `data-note`) in both dictionaries, or it will silently disappear in one
-  language.
+- **Multilingual pages: annotations live inside the dictionary strings.**
+  The language switch replaces innerHTML, so a note only present in the
+  default markup vanishes in every other language. Embed the annotation
+  markup (with a translated `data-note`) in every language dictionary, or
+  it will silently disappear on switch.
 
 ## Step 4 · Verify
 
 1. Run `node scripts/validate-page.mjs <path>/index.html` from this skill's
    directory. It checks JS validity, i18n key parity (when the page is
-   bilingual), nav/section order, and leftover placeholders. Fix everything
+   multilingual), nav/section order, and leftover placeholders. Fix everything
    it reports.
 2. Serve the folder over local HTTP and load it in a browser when browser
-   tooling is available: check both languages (if bilingual), figure text
+   tooling is available: check every language (if multilingual), figure text
    inside bounds, tables scrolling on narrow widths, the mobile language
    switch not covering the first heading.
 3. Report the output path and exactly what was verified; say plainly if

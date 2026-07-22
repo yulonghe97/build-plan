@@ -19,7 +19,7 @@
   <text class="t" x="32" y="140">Your plan</text>
   <text class="c" x="32" y="162">a prompt, notes,</text>
   <text class="c" x="32" y="178">or a jargon brief</text>
-  <text class="c" x="32" y="194">EN or 中文</text>
+  <text class="c" x="32" y="194">in any language</text>
 
   <line class="ln" x1="166" y1="160" x2="196" y2="160" marker-end="url(#ar)"/>
 
@@ -57,7 +57,7 @@
   <rect class="boxk" x="602" y="96" width="142" height="128"/>
   <text class="t" x="618" y="124">index.html</text>
   <text class="c" x="618" y="146">self-contained</text>
-  <text class="c" x="618" y="162">one language, or</text>
-  <text class="c" x="618" y="178">EN/中文 toggle</text>
+  <text class="c" x="618" y="162">one language, or a</text>
+  <text class="c" x="618" y="178">toggle for several</text>
   <text class="c" x="618" y="200">ready for review</text>
 </svg>

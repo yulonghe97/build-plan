@@ -55,7 +55,14 @@ for (const match of html.matchAll(/data-i18n(?:-html|-aria)?="([^"]+)"/g)) {
 }
 
 if (messages) {
-  for (const language of ['en', 'zh']) {
+  const languageKeys = Object.keys(messages);
+  if (languageKeys.length < 2) {
+    errors.push(
+      'messages defines fewer than two languages; single-language pages should drop the i18n scaffolding entirely.'
+    );
+  }
+
+  for (const language of languageKeys) {
     const dictionary = messages[language];
     if (!dictionary || typeof dictionary !== 'object') {
       errors.push(`Missing ${language} message dictionary.`);
@@ -75,11 +82,11 @@ if (messages) {
     if (empty.length > 0) errors.push(`${language} has empty values: ${empty.join(', ')}`);
   }
 
-  if (messages.en && messages.zh) {
-    const enKeys = Object.keys(messages.en).sort();
-    const zhKeys = Object.keys(messages.zh).sort();
-    if (JSON.stringify(enKeys) !== JSON.stringify(zhKeys)) {
-      errors.push('English and Chinese dictionaries do not contain the same keys.');
+  const [firstLanguage, ...otherLanguages] = languageKeys;
+  const firstKeys = JSON.stringify(Object.keys(messages[firstLanguage] ?? {}).sort());
+  for (const language of otherLanguages) {
+    if (JSON.stringify(Object.keys(messages[language] ?? {}).sort()) !== firstKeys) {
+      errors.push(`Dictionaries "${firstLanguage}" and "${language}" do not contain the same keys.`);
     }
   }
 }
@@ -155,13 +162,17 @@ for (const [svg] of svgBlocks) {
       : classes.map((c) => classFontSizes[c]).find((s) => s) ?? 12;
     const mono = classes.some((c) => classIsMono[c]);
 
-    // On bilingual pages the zh dictionary value replaces this text at
-    // runtime, so both language variants must fit the same box.
+    // On multilingual pages every dictionary value replaces this text at
+    // runtime, so each language variant must fit the same box.
     const i18nKey = attrs.match(/data-i18n="([^"]+)"/)?.[1];
-    const zhValue = i18nKey && messages?.zh?.[i18nKey];
     const variants = [{ label: '', text: content }];
-    if (typeof zhValue === 'string' && !/[<>]/.test(zhValue)) {
-      variants.push({ label: ' (zh variant)', text: zhValue.trim() });
+    if (i18nKey && messages) {
+      for (const [language, dictionary] of Object.entries(messages)) {
+        const value = dictionary?.[i18nKey];
+        if (typeof value === 'string' && !/[<>]/.test(value)) {
+          variants.push({ label: ` (${language} variant)`, text: value.trim() });
+        }
+      }
     }
     const widest = variants
       .map((v) => ({ ...v, width: estimateWidth(v.text, fontSize, mono) }))
@@ -191,9 +202,11 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-const mode = messagesMatch
-  ? `${referencedKeys.size} bilingual keys`
-  : 'single-language page';
+const mode = messages
+  ? `${Object.keys(messages).length} languages × ${referencedKeys.size} keys`
+  : messagesMatch
+    ? `${referencedKeys.size} i18n keys`
+    : 'single-language page';
 console.log(
   `Validated ${path}: ${mode}, ${sectionIds.length} sections, valid inline JavaScript.`
 );

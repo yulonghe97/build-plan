@@ -139,7 +139,16 @@ genuinely a list.
   color/outline convention (e.g. "orange = model call").
 - Timelines under workflow figures ("< 3 s first fields · 8-12 s complete")
   turn latency promises into something reviewable.
-- Text must stay inside its viewBox at rendered size; check visually.
+- **Budget characters before writing a label.** Overflowing text is the most
+  common defect in generated figures. At 11px mono a latin character is
+  ~7px and a CJK character ~11px, so a 156px box with 12px padding fits
+  about 20 latin or 12 CJK characters per line. Shorten the label, don't
+  shrink the font.
+- The validator estimates every SVG text's width against its enclosing box,
+  including the 中文 dictionary variant on bilingual pages, and fails on
+  likely overflows. Treat every flag as real. The estimate can't see
+  kerning or collisions between neighboring floating labels, so still
+  screenshot-check the final figures.
 
 ### Optional: hand-drawn margin annotations
 

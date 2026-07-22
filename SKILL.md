@@ -52,8 +52,10 @@ build a toggle nobody asked for.
   whether they want a second language on the page (e.g. "want this bilingual
   with an EN/中文 toggle, or single-language?"). Record the answer.
 - Remembered preference: follow it without asking.
-- Single language: strip the language switcher and the `messages`/`setLanguage`
-  script from the template entirely; keep the content inline. No dead UI.
+- Single language: strip both language controls (the sidebar switcher and
+  the mobile header's language dropdown — keep the mobile header itself,
+  brand only) plus the `messages`/`setLanguage` script; keep the content
+  inline. No dead UI.
 - Two languages: follow the i18n contract below.
 
 ### i18n contract (bilingual pages only)

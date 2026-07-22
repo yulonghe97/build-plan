@@ -275,25 +275,106 @@
   .box-accent { fill: #fff; stroke: var(--accent); stroke-width: 1.2; rx: 6; }
   .line { fill: none; stroke: #b9b9c2; stroke-width: 1.2; }
 
+  /* Mobile fixed header. Hidden on desktop; replaces the sidebar there. */
+  .mobile-header { display: none; }
   @media (max-width: 900px) {
     nav { display: none; }
-    main { margin-left: 0; padding: 72px 24px 80px; }
-    .mobile-language-switcher {
+    main { margin-left: 0; padding: 84px 24px 80px; }
+    .mobile-header {
+      display: flex;
       position: fixed;
-      z-index: 10;
-      top: 16px;
-      right: 16px;
-      display: grid;
-      width: 152px;
-      margin: 0;
-      background: rgb(250 250 250 / 94%);
+      z-index: 20;
+      inset: 0 0 auto 0;
+      height: 52px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: rgb(255 255 255 / 92%);
       backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .mh-brand { display: flex; align-items: center; gap: 10px; }
+    .mh-brand .brand-icon { width: 22px; height: 22px; margin: 0; display: block; }
+    .mh-brand .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .mh-title {
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .lang-menu { position: relative; }
+    .lang-menu > button {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--hairline);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .lang-menu > button::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      margin-top: -3px;
+      border-right: 1.4px solid var(--muted);
+      border-bottom: 1.4px solid var(--muted);
+      transform: rotate(45deg);
+    }
+    .lang-menu-list {
+      display: none;
+      position: absolute;
+      top: 38px;
+      right: 0;
+      min-width: 128px;
+      margin: 0;
+      padding: 4px;
+      list-style: none;
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgb(13 12 43 / 10%);
+    }
+    .lang-menu.open .lang-menu-list { display: block; }
+    .lang-menu-list button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      height: 34px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--body);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .lang-menu-list button[aria-pressed="true"] {
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .lang-menu-list button[aria-pressed="true"]::after {
+      content: "✓";
+      color: var(--accent);
     }
     h2 { font-size: 24px; }
     figure { padding: 20px 14px 16px; }
-  }
-  @media (min-width: 901px) {
-    .mobile-language-switcher { display: none; }
   }
 </style>
 </head>
@@ -325,10 +406,22 @@
   <div class="nav-foot" data-i18n-html="navFoot">Draft for review<br>Team · Project</div>
 </nav>
 
-<div class="language-switcher mobile-language-switcher" role="group" data-i18n-aria="languageLabel" aria-label="Language">
-  <button type="button" data-language="en" aria-pressed="true">EN</button>
-  <button type="button" data-language="zh" aria-pressed="false">中文</button>
-</div>
+<header class="mobile-header">
+  <div class="mh-brand">
+    <!-- Mirror the sidebar brand mark: logo img or the accent dot. -->
+    <span class="dot"></span>
+    <span class="mh-title" data-i18n="projectName">Project Name</span>
+  </div>
+  <div class="lang-menu" data-lang-menu>
+    <button type="button" aria-haspopup="listbox" aria-expanded="false" data-i18n-aria="languageLabel" aria-label="Language">
+      <span class="lang-menu-label">EN</span>
+    </button>
+    <ul class="lang-menu-list">
+      <li><button type="button" data-language="en" aria-pressed="true">English</button></li>
+      <li><button type="button" data-language="zh" aria-pressed="false">中文</button></li>
+    </ul>
+  </div>
+</header>
 
 <main>
   <section id="overview">
@@ -678,12 +771,34 @@ POST /api/v1/resources/:id/revisions</pre>
       button.setAttribute('aria-pressed', String(button.dataset.language === language));
     });
 
+    const langLabel = document.querySelector('.lang-menu-label');
+    if (langLabel) langLabel.textContent = language === 'zh' ? '中文' : 'EN';
+    closeLangMenu();
+
     try { localStorage.setItem(storageKey, language); } catch {}
   }
 
   languageButtons.forEach((button) => {
     button.addEventListener('click', () => setLanguage(button.dataset.language));
   });
+
+  // Mobile header language dropdown
+  const langMenu = document.querySelector('[data-lang-menu]');
+  const langMenuTrigger = langMenu ? langMenu.querySelector(':scope > button') : null;
+  function closeLangMenu() {
+    if (!langMenu) return;
+    langMenu.classList.remove('open');
+    langMenuTrigger.setAttribute('aria-expanded', 'false');
+  }
+  if (langMenu) {
+    langMenuTrigger.addEventListener('click', () => {
+      const open = langMenu.classList.toggle('open');
+      langMenuTrigger.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (event) => {
+      if (!langMenu.contains(event.target)) closeLangMenu();
+    });
+  }
 
   let initialLanguage = 'en';
   try {

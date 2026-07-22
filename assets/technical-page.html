@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Name · Technical Design Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0c2b;
+    --body: #2a2a3a;
+    --muted: #666;
+    --faint: #8a8a94;
+    --hairline: #e7e7ea;
+    --surface: #fafafa;
+    --accent: #ff4301;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --display: "Space Grotesk", var(--sans);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #fff;
+    color: var(--body);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 232px;
+    overflow-y: auto;
+    border-right: 1px solid var(--hairline);
+    background: #fff;
+    padding: 36px 0 24px;
+  }
+
+  .nav-brand { padding: 0 28px 28px; }
+  .nav-brand .brand-icon {
+    display: block;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 14px;
+  }
+  .nav-brand .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .nav-brand h1 {
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .nav-brand p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .language-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 176px;
+    margin: 0 28px 24px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: var(--surface);
+    padding: 2px;
+  }
+  .language-switcher button {
+    min-width: 0;
+    height: 30px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .language-switcher button[aria-pressed="true"] {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgb(13 12 43 / 10%);
+  }
+  .language-switcher button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  nav ol { list-style: none; }
+  nav ol a {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 7px 28px;
+    text-decoration: none;
+    transition: color 150ms, border-color 150ms;
+  }
+  nav ol a .number {
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  nav ol a:hover { color: var(--ink); }
+  nav ol a.active {
+    border-left-color: var(--accent);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  nav ol a.active .number { color: var(--accent); }
+
+  .nav-foot {
+    margin-top: 24px;
+    border-top: 1px solid var(--hairline);
+    color: var(--faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.8;
+    padding: 24px 28px 0;
+  }
+
+  main {
+    max-width: 860px;
+    margin-left: 232px;
+    padding: 72px 64px 120px;
+  }
+  section {
+    margin-bottom: 88px;
+    scroll-margin-top: 40px;
+  }
+  .kicker {
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  h2 {
+    margin-bottom: 18px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  h3 {
+    margin: 32px 0 10px;
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  p { max-width: 680px; margin-bottom: 14px; }
+  p.lede { color: var(--ink); font-size: 17px; line-height: 1.6; }
+  strong { color: var(--ink); font-weight: 600; }
+
+  ol.steps,
+  ul.tight {
+    max-width: 680px;
+    margin: 0 0 16px 20px;
+  }
+  ol.steps li,
+  ul.tight li { margin-bottom: 10px; }
+
+  code {
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 1px 5px;
+  }
+  pre {
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    padding: 18px 22px;
+  }
+
+  .table-wrap { width: 100%; overflow-x: auto; }
+  table {
+    width: 100%;
+    min-width: 560px;
+    margin: 16px 0 20px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    border-bottom: 1px solid var(--ink);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0 14px 10px 0;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  td {
+    border-bottom: 1px solid var(--hairline);
+    line-height: 1.55;
+    padding: 11px 14px 11px 0;
+    vertical-align: top;
+  }
+  td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .dim { color: var(--muted); }
+
+  figure {
+    margin: 24px 0;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: #fff;
+    padding: 28px 24px 20px;
+  }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    margin-top: 16px;
+    border-top: 1px solid var(--hairline);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding-top: 14px;
+  }
+
+  .callout {
+    max-width: 680px;
+    margin: 20px 0;
+    border: 1px solid var(--hairline);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    background: var(--surface);
+    font-size: 14px;
+    padding: 16px 20px;
+  }
+  .callout-title {
+    margin-bottom: 6px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  svg text { font-family: var(--sans); }
+  .svg-title { fill: var(--ink); font-size: 13px; font-weight: 600; }
+  .svg-copy { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .svg-label { fill: var(--accent); font-family: var(--mono); font-size: 11px; }
+  .box { fill: #fff; stroke: #cfcfd6; rx: 6; }
+  .box-strong { fill: #fff; stroke: var(--ink); stroke-width: 1.2; rx: 6; }
+  .box-accent { fill: #fff; stroke: var(--accent); stroke-width: 1.2; rx: 6; }
+  .line { fill: none; stroke: #b9b9c2; stroke-width: 1.2; }
+
+  @media (max-width: 900px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 72px 24px 80px; }
+    .mobile-language-switcher {
+      position: fixed;
+      z-index: 10;
+      top: 16px;
+      right: 16px;
+      display: grid;
+      width: 152px;
+      margin: 0;
+      background: rgb(250 250 250 / 94%);
+      backdrop-filter: blur(8px);
+    }
+    h2 { font-size: 24px; }
+    figure { padding: 20px 14px 16px; }
+  }
+  @media (min-width: 901px) {
+    .mobile-language-switcher { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <!-- With a repo logo: <img class="brand-icon" src="brand-icon.svg" alt="Brand">
+         Without one, keep the accent dot below. Use one or the other, not both. -->
+    <span class="dot"></span>
+    <h1 data-i18n="projectName">Project Name</h1>
+    <p data-i18n="documentType">Technical Design Plan</p>
+  </div>
+
+  <div class="language-switcher" role="group" data-i18n-aria="languageLabel" aria-label="Language">
+    <button type="button" data-language="en" aria-pressed="true">EN</button>
+    <button type="button" data-language="zh" aria-pressed="false">中文</button>
+  </div>
+
+  <ol>
+    <li><a href="#overview"><span class="number">01</span><span data-i18n="navOverview">Overview</span></a></li>
+    <li><a href="#decisions"><span class="number">02</span><span data-i18n="navDecisions">Key Decisions</span></a></li>
+    <li><a href="#architecture"><span class="number">03</span><span data-i18n="navArchitecture">Architecture</span></a></li>
+    <li><a href="#workflow"><span class="number">04</span><span data-i18n="navWorkflow">Workflow</span></a></li>
+    <li><a href="#rollout"><span class="number">05</span><span data-i18n="navRollout">Rollout</span></a></li>
+    <li><a href="#references"><span class="number">06</span><span data-i18n="navReferences">References</span></a></li>
+  </ol>
+
+  <div class="nav-foot" data-i18n-html="navFoot">Draft for review<br>Team · Project</div>
+</nav>
+
+<div class="language-switcher mobile-language-switcher" role="group" data-i18n-aria="languageLabel" aria-label="Language">
+  <button type="button" data-language="en" aria-pressed="true">EN</button>
+  <button type="button" data-language="zh" aria-pressed="false">中文</button>
+</div>
+
+<main>
+  <section id="overview">
+    <div class="kicker" data-i18n="overviewKicker">01 · Overview</div>
+    <h2 data-i18n="overviewTitle">One system, one clear contract</h2>
+    <p class="lede" data-i18n="overviewLede">A concise summary of the system, the user outcome, and the central technical idea.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td data-i18n="overviewRow1Label">Purpose</td><td data-i18n="overviewRow1Copy">State what this design enables and for whom.</td></tr>
+          <tr><td data-i18n="overviewRow2Label">Boundary</td><td data-i18n="overviewRow2Copy">State what the system owns and what remains outside its scope.</td></tr>
+          <tr><td data-i18n="overviewRow3Label">Success</td><td data-i18n="overviewRow3Copy">State the measurable outcome that proves the design works.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="decisions">
+    <div class="kicker" data-i18n="decisionsKicker">02 · Key Decisions</div>
+    <h2 data-i18n="decisionsTitle">Current state versus target</h2>
+    <p data-i18n="decisionsIntro">Use this section to make the important changes easy to compare.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th data-i18n="dimension">Dimension</th><th data-i18n="today">Today</th><th data-i18n="target">Target</th></tr>
+        </thead>
+        <tbody>
+          <tr><td data-i18n="decision1Label">Ownership</td><td class="dim" data-i18n="decision1Today">Describe the current responsibility split.</td><td data-i18n="decision1Target">Describe the intended owner and boundary.</td></tr>
+          <tr><td data-i18n="decision2Label">Data</td><td class="dim" data-i18n="decision2Today">Describe the current source of truth.</td><td data-i18n="decision2Target">Describe the target source of truth.</td></tr>
+          <tr><td data-i18n="decision3Label">Validation</td><td class="dim" data-i18n="decision3Today">Describe the current gaps.</td><td data-i18n="decision3Target">Describe the target checks and guarantees.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title" data-i18n="decisionCalloutTitle">Decision</div>
+      <span data-i18n="decisionCalloutCopy">Summarize the highest-leverage decision and why it is binding.</span>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="kicker" data-i18n="architectureKicker">03 · Architecture</div>
+    <h2 data-i18n="architectureTitle">A small core behind stable boundaries</h2>
+    <p data-i18n="architectureIntro">Explain the architecture in prose, then use the diagram to show ownership and flow.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 286" xmlns="http://www.w3.org/2000/svg" role="img" data-i18n-aria="diagramLabel" aria-label="System architecture">
+        <defs>
+          <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0.5 L7.5,4 L0,7.5" fill="none" stroke="#b9b9c2" stroke-width="1.2"/>
+          </marker>
+        </defs>
+
+        <rect class="box" x="24" y="28" width="188" height="64"/>
+        <text class="svg-title" x="40" y="54" data-i18n="diagramClient">Client surfaces</text>
+        <text class="svg-copy" x="40" y="74" data-i18n="diagramClientCopy">web · CLI · integrations</text>
+
+        <rect class="box-accent" x="266" y="20" width="188" height="80"/>
+        <text class="svg-label" x="282" y="44" data-i18n="diagramCoreLabel">CORE</text>
+        <text class="svg-title" x="282" y="65" data-i18n="diagramCore">Domain service</text>
+        <text class="svg-copy" x="282" y="84" data-i18n="diagramCoreCopy">policy · workflow · validation</text>
+
+        <rect class="box" x="508" y="28" width="188" height="64"/>
+        <text class="svg-title" x="524" y="54" data-i18n="diagramEvidence">Evidence sources</text>
+        <text class="svg-copy" x="524" y="74" data-i18n="diagramEvidenceCopy">database · APIs · telemetry</text>
+
+        <line class="line" x1="212" y1="60" x2="262" y2="60" marker-end="url(#arrow)"/>
+        <line class="line" x1="508" y1="60" x2="458" y2="60" marker-end="url(#arrow)"/>
+
+        <rect class="box-strong" x="266" y="164" width="188" height="64"/>
+        <text class="svg-title" x="282" y="190" data-i18n="diagramStore">Durable state</text>
+        <text class="svg-copy" x="282" y="210" data-i18n="diagramStoreCopy">revisions · checks · provenance</text>
+        <line class="line" x1="360" y1="100" x2="360" y2="160" marker-end="url(#arrow)"/>
+
+        <text class="svg-label" x="508" y="184" data-i18n="diagramBoundary">HARD BOUNDARY</text>
+        <text class="svg-copy" x="508" y="207" data-i18n="diagramBoundaryCopy">Keep money and mutations outside.</text>
+      </svg>
+      <figcaption data-i18n="architectureCaption">Figure 1 · Replace with the system's real components and trust boundaries.</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li data-i18n-html="architectureStep1"><strong>Inputs.</strong> Explain where intent and authenticated context enter.</li>
+      <li data-i18n-html="architectureStep2"><strong>Core.</strong> Explain the domain logic and deterministic boundaries.</li>
+      <li data-i18n-html="architectureStep3"><strong>State.</strong> Explain persistence, provenance, and downstream consumers.</li>
+    </ol>
+  </section>
+
+  <section id="workflow">
+    <div class="kicker" data-i18n="workflowKicker">04 · Workflow</div>
+    <h2 data-i18n="workflowTitle">A bounded path from input to outcome</h2>
+    <p data-i18n="workflowIntro">Describe the critical path, including which steps are deterministic and which can fail or retry.</p>
+
+    <ol class="steps">
+      <li data-i18n-html="workflowStep1"><strong>Assemble.</strong> Load validated context and choose the applicable policy.</li>
+      <li data-i18n-html="workflowStep2"><strong>Execute.</strong> Run the minimum sequence needed to produce the result.</li>
+      <li data-i18n-html="workflowStep3"><strong>Verify.</strong> Attach checks, evidence, and a clear failure state.</li>
+      <li data-i18n-html="workflowStep4"><strong>Commit.</strong> Persist the exact revision that downstream systems consume.</li>
+    </ol>
+
+    <h3 data-i18n="contractTitle">Contract surface</h3>
+    <pre><span data-i18n="codeComment"># Replace with the real interface</span>
+POST /api/v1/resources
+GET  /api/v1/resources/:id
+POST /api/v1/resources/:id/revisions</pre>
+  </section>
+
+  <section id="rollout">
+    <div class="kicker" data-i18n="rolloutKicker">05 · Rollout</div>
+    <h2 data-i18n="rolloutTitle">Ship in measurable phases</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th data-i18n="phase">Phase</th><th data-i18n="delivers">Delivers</th><th data-i18n="measuredBy">Measured by</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td data-i18n="phase1Name">Foundation</td><td class="dim" data-i18n="phase1Delivery">Land the contract, baseline, and verification harness.</td><td class="dim" data-i18n="phase1Metric">Baseline quality and reliability.</td></tr>
+          <tr><td>2</td><td data-i18n="phase2Name">Core path</td><td class="dim" data-i18n="phase2Delivery">Ship the primary workflow behind an explicit boundary.</td><td class="dim" data-i18n="phase2Metric">Latency, success rate, and quality delta.</td></tr>
+          <tr><td>3</td><td data-i18n="phase3Name">Adoption</td><td class="dim" data-i18n="phase3Delivery">Connect all intended clients and remove the legacy path.</td><td class="dim" data-i18n="phase3Metric">Usage and legacy-path retirement.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title" data-i18n="preconditionsTitle">Verify first</div>
+      <span data-i18n="preconditionsCopy">List production assumptions that must be proven before implementation begins.</span>
+    </div>
+  </section>
+
+  <section id="references">
+    <div class="kicker" data-i18n="referencesKicker">06 · References</div>
+    <h2 data-i18n="referencesTitle">Sources</h2>
+    <ul class="tight">
+      <li data-i18n-html="reference1"><strong>Primary specification.</strong> Link the binding product or engineering source of truth.</li>
+      <li data-i18n-html="reference2"><strong>Repository evidence.</strong> Link the relevant modules, schemas, or implementation notes.</li>
+      <li data-i18n-html="reference3"><strong>External reference.</strong> Link authoritative documentation used by the design.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+  const messages = {
+    en: {
+      metaTitle: 'Project Name · Technical Design Plan',
+      languageLabel: 'Language',
+      projectName: 'Project Name',
+      documentType: 'Technical Design Plan',
+      navOverview: 'Overview',
+      navDecisions: 'Key Decisions',
+      navArchitecture: 'Architecture',
+      navWorkflow: 'Workflow',
+      navRollout: 'Rollout',
+      navReferences: 'References',
+      navFoot: 'Draft for review<br>Team · Project',
+      overviewKicker: '01 · Overview',
+      overviewTitle: 'One system, one clear contract',
+      overviewLede: 'A concise summary of the system, the user outcome, and the central technical idea.',
+      overviewRow1Label: 'Purpose',
+      overviewRow1Copy: 'State what this design enables and for whom.',
+      overviewRow2Label: 'Boundary',
+      overviewRow2Copy: 'State what the system owns and what remains outside its scope.',
+      overviewRow3Label: 'Success',
+      overviewRow3Copy: 'State the measurable outcome that proves the design works.',
+      decisionsKicker: '02 · Key Decisions',
+      decisionsTitle: 'Current state versus target',
+      decisionsIntro: 'Use this section to make the important changes easy to compare.',
+      dimension: 'Dimension',
+      today: 'Today',
+      target: 'Target',
+      decision1Label: 'Ownership',
+      decision1Today: 'Describe the current responsibility split.',
+      decision1Target: 'Describe the intended owner and boundary.',
+      decision2Label: 'Data',
+      decision2Today: 'Describe the current source of truth.',
+      decision2Target: 'Describe the target source of truth.',
+      decision3Label: 'Validation',
+      decision3Today: 'Describe the current gaps.',
+      decision3Target: 'Describe the target checks and guarantees.',
+      decisionCalloutTitle: 'Decision',
+      decisionCalloutCopy: 'Summarize the highest-leverage decision and why it is binding.',
+      architectureKicker: '03 · Architecture',
+      architectureTitle: 'A small core behind stable boundaries',
+      architectureIntro: 'Explain the architecture in prose, then use the diagram to show ownership and flow.',
+      diagramLabel: 'System architecture',
+      diagramClient: 'Client surfaces',
+      diagramClientCopy: 'web · CLI · integrations',
+      diagramCoreLabel: 'CORE',
+      diagramCore: 'Domain service',
+      diagramCoreCopy: 'policy · workflow · validation',
+      diagramEvidence: 'Evidence sources',
+      diagramEvidenceCopy: 'database · APIs · telemetry',
+      diagramStore: 'Durable state',
+      diagramStoreCopy: 'revisions · checks · provenance',
+      diagramBoundary: 'HARD BOUNDARY',
+      diagramBoundaryCopy: 'Keep money and mutations outside.',
+      architectureCaption: "Figure 1 · Replace with the system's real components and trust boundaries.",
+      architectureStep1: '<strong>Inputs.</strong> Explain where intent and authenticated context enter.',
+      architectureStep2: '<strong>Core.</strong> Explain the domain logic and deterministic boundaries.',
+      architectureStep3: '<strong>State.</strong> Explain persistence, provenance, and downstream consumers.',
+      workflowKicker: '04 · Workflow',
+      workflowTitle: 'A bounded path from input to outcome',
+      workflowIntro: 'Describe the critical path, including which steps are deterministic and which can fail or retry.',
+      workflowStep1: '<strong>Assemble.</strong> Load validated context and choose the applicable policy.',
+      workflowStep2: '<strong>Execute.</strong> Run the minimum sequence needed to produce the result.',
+      workflowStep3: '<strong>Verify.</strong> Attach checks, evidence, and a clear failure state.',
+      workflowStep4: '<strong>Commit.</strong> Persist the exact revision that downstream systems consume.',
+      contractTitle: 'Contract surface',
+      codeComment: '# Replace with the real interface',
+      rolloutKicker: '05 · Rollout',
+      rolloutTitle: 'Ship in measurable phases',
+      phase: 'Phase',
+      delivers: 'Delivers',
+      measuredBy: 'Measured by',
+      phase1Name: 'Foundation',
+      phase1Delivery: 'Land the contract, baseline, and verification harness.',
+      phase1Metric: 'Baseline quality and reliability.',
+      phase2Name: 'Core path',
+      phase2Delivery: 'Ship the primary workflow behind an explicit boundary.',
+      phase2Metric: 'Latency, success rate, and quality delta.',
+      phase3Name: 'Adoption',
+      phase3Delivery: 'Connect all intended clients and remove the legacy path.',
+      phase3Metric: 'Usage and legacy-path retirement.',
+      preconditionsTitle: 'Verify first',
+      preconditionsCopy: 'List production assumptions that must be proven before implementation begins.',
+      referencesKicker: '06 · References',
+      referencesTitle: 'Sources',
+      reference1: '<strong>Primary specification.</strong> Link the binding product or engineering source of truth.',
+      reference2: '<strong>Repository evidence.</strong> Link the relevant modules, schemas, or implementation notes.',
+      reference3: '<strong>External reference.</strong> Link authoritative documentation used by the design.'
+    },
+    zh: {
+      metaTitle: '项目名称 · 技术设计方案',
+      languageLabel: '语言',
+      projectName: '项目名称',
+      documentType: '技术设计方案',
+      navOverview: '概览',
+      navDecisions: '关键决策',
+      navArchitecture: '架构',
+      navWorkflow: '工作流',
+      navRollout: '实施路线',
+      navReferences: '参考资料',
+      navFoot: '评审草案<br>团队 · 项目',
+      overviewKicker: '01 · 概览',
+      overviewTitle: '一个系统，一份清晰契约',
+      overviewLede: '用简洁的一段话概括系统、用户结果和核心技术思路。',
+      overviewRow1Label: '目的',
+      overviewRow1Copy: '说明该设计为谁解决什么问题。',
+      overviewRow2Label: '边界',
+      overviewRow2Copy: '说明系统负责什么，以及哪些内容不在范围内。',
+      overviewRow3Label: '成功标准',
+      overviewRow3Copy: '说明哪些可衡量结果能够证明设计有效。',
+      decisionsKicker: '02 · 关键决策',
+      decisionsTitle: '现状与目标',
+      decisionsIntro: '用本节清晰对比最重要的变化。',
+      dimension: '维度',
+      today: '现状',
+      target: '目标',
+      decision1Label: '所有权',
+      decision1Today: '描述当前的职责划分。',
+      decision1Target: '描述目标负责人和边界。',
+      decision2Label: '数据',
+      decision2Today: '描述当前的单一事实来源。',
+      decision2Target: '描述目标单一事实来源。',
+      decision3Label: '校验',
+      decision3Today: '描述当前缺口。',
+      decision3Target: '描述目标检查与保证。',
+      decisionCalloutTitle: '决策',
+      decisionCalloutCopy: '概括杠杆最高的决策，以及它为何具有约束力。',
+      architectureKicker: '03 · 架构',
+      architectureTitle: '稳定边界背后的精简核心',
+      architectureIntro: '先用文字解释架构，再用图展示所有权和数据流。',
+      diagramLabel: '系统架构',
+      diagramClient: '客户端界面',
+      diagramClientCopy: 'Web · CLI · 集成',
+      diagramCoreLabel: '核心',
+      diagramCore: '领域服务',
+      diagramCoreCopy: '政策 · 工作流 · 校验',
+      diagramEvidence: '证据来源',
+      diagramEvidenceCopy: '数据库 · API · 遥测',
+      diagramStore: '持久状态',
+      diagramStoreCopy: '修订 · 检查 · 溯源',
+      diagramBoundary: '硬边界',
+      diagramBoundaryCopy: '资金与写操作留在边界之外。',
+      architectureCaption: '图 1 · 替换为系统的真实组件和信任边界。',
+      architectureStep1: '<strong>输入。</strong>说明意图和认证上下文从何处进入。',
+      architectureStep2: '<strong>核心。</strong>说明领域逻辑与确定性边界。',
+      architectureStep3: '<strong>状态。</strong>说明持久化、溯源和下游消费者。',
+      workflowKicker: '04 · 工作流',
+      workflowTitle: '从输入到结果的有界路径',
+      workflowIntro: '描述关键路径，包括哪些步骤是确定性的，哪些步骤可能失败或重试。',
+      workflowStep1: '<strong>组装。</strong>加载已验证上下文，并选择适用政策。',
+      workflowStep2: '<strong>执行。</strong>运行生成结果所需的最短流程。',
+      workflowStep3: '<strong>校验。</strong>附加检查、证据和明确的失败状态。',
+      workflowStep4: '<strong>提交。</strong>持久化下游系统将消费的确切修订。',
+      contractTitle: '契约界面',
+      codeComment: '# 替换为真实接口',
+      rolloutKicker: '05 · 实施路线',
+      rolloutTitle: '分阶段发布，并持续衡量',
+      phase: '阶段',
+      delivers: '交付内容',
+      measuredBy: '衡量指标',
+      phase1Name: '基础',
+      phase1Delivery: '落地契约、基线和验证工具。',
+      phase1Metric: '质量与可靠性基线。',
+      phase2Name: '核心路径',
+      phase2Delivery: '在明确边界后发布主工作流。',
+      phase2Metric: '延迟、成功率与质量变化。',
+      phase3Name: '采用',
+      phase3Delivery: '连接所有目标客户端，并移除旧路径。',
+      phase3Metric: '使用量与旧路径下线进度。',
+      preconditionsTitle: '首先验证',
+      preconditionsCopy: '列出实施开始前必须证明的生产环境假设。',
+      referencesKicker: '06 · 参考资料',
+      referencesTitle: '资料来源',
+      reference1: '<strong>主要规范。</strong>链接具有约束力的产品或工程单一事实来源。',
+      reference2: '<strong>仓库证据。</strong>链接相关模块、schema 或实现笔记。',
+      reference3: '<strong>外部参考。</strong>链接本设计采用的权威文档。'
+    }
+  };
+
+  const languageButtons = document.querySelectorAll('[data-language]');
+  const storageKey = 'bilingual-technical-page-language';
+
+  function setLanguage(language) {
+    const copy = messages[language];
+
+    document.querySelectorAll('[data-i18n]').forEach((element) => {
+      const value = copy[element.dataset.i18n];
+      if (value !== undefined) element.textContent = value;
+    });
+
+    document.querySelectorAll('[data-i18n-html]').forEach((element) => {
+      const value = copy[element.dataset.i18nHtml];
+      if (value !== undefined) element.innerHTML = value;
+    });
+
+    document.querySelectorAll('[data-i18n-aria]').forEach((element) => {
+      const value = copy[element.dataset.i18nAria];
+      if (value !== undefined) element.setAttribute('aria-label', value);
+    });
+
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+    document.title = copy.metaTitle;
+    languageButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.language === language));
+    });
+
+    try { localStorage.setItem(storageKey, language); } catch {}
+  }
+
+  languageButtons.forEach((button) => {
+    button.addEventListener('click', () => setLanguage(button.dataset.language));
+  });
+
+  let initialLanguage = 'en';
+  try {
+    if (localStorage.getItem(storageKey) === 'zh') initialLanguage = 'zh';
+  } catch {}
+  setLanguage(initialLanguage);
+
+  const links = document.querySelectorAll('nav ol a');
+  const sections = [...document.querySelectorAll('main section')];
+  const linksById = Object.fromEntries(
+    [...links].map((link) => [link.getAttribute('href').slice(1), link])
+  );
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      links.forEach((link) => link.classList.remove('active'));
+      linksById[entry.target.id]?.classList.add('active');
+    }
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach((section) => observer.observe(section));
+</script>
+</body>
+</html>

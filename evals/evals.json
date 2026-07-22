@@ -1,0 +1,26 @@
+{
+  "skill_name": "build-plan",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "english-only-plan-with-repo-logo",
+      "prompt": "I need a technical design plan page for our new 'webhook-relay' service. It's a small Node service that receives Stripe webhooks, verifies signatures, dedupes events in Postgres, and fans them out to internal consumers over SQS with retries. Key decisions: at-least-once delivery, 7-day event retention, dead-letter queue after 5 attempts. Rollout is in 3 phases (shadow mode, single consumer, all consumers). Make it a nice HTML page I can share with the team. Put it in .context/webhook-relay-plan/. English only is fine.",
+      "expected_output": "A single-language index.html in the plan style: sidebar nav, 4-9 sections, at least one SVG architecture/flow figure with numbered explanation, no language switcher or messages object, no dead i18n attributes, plain-language prose with short paragraphs, concrete numbers preserved (7-day, 5 attempts, 3 phases). If the sandbox repo has a logo asset it is found and used; validator passes.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "eval_name": "bilingual-plan-chinese-request",
+      "prompt": "帮我把这个方案做成 HTML 页面: 我们要给客服系统加一个'智能工单分类'功能。用户提交工单后, 先用规则匹配(关键词表, 约50条规则), 匹配不到的走一次模型调用分类, 分类结果带置信度, 低于0.7的进人工审核队列。数据: 每天约2000单, 目前人工分类平均3分钟一单。上线分两步: 先影子模式跑两周对比人工结果, 准确率达到90%再切换。要中英双语, 英文默认。放在 .context/ticket-triage-plan/",
+      "expected_output": "A bilingual index.html with EN default and 中文 toggle: complete key parity between dictionaries (validator passes), SVG workflow figure showing rules-first then model call then confidence gate, concrete numbers kept in both languages (50 rules, 0.7, 2000/day, 3 min, two weeks, 90%), no jargon or long paragraphs in either language, localStorage persistence.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "plain-language-rewrite-of-jargon-brief",
+      "prompt": "Turn this into a plan page (in .context/cache-plan/): 'We will operationalize a multi-tier caching paradigm leveraging an in-process LRU eviction layer (L1) synergizing with a distributed Redis cluster (L2), facilitating sub-millisecond retrieval latencies for hot-path entities. Invalidation will be orchestrated via CDC-driven event propagation with eventual consistency semantics. TTLs: L1 60s, L2 1h. Expected hit rate 85% based on access log replay. Rollout gated behind a feature flag with 5% canary.' Keep it readable, my PM will review this.",
+      "expected_output": "The jargon brief is rewritten in plain language (no 'operationalize', 'synergizing', 'paradigm', 'facilitating'; plain terms like 'in-memory cache', 'when data changes, an event clears the cache'), while keeping every number exact (60s, 1h, 85%, 5%). Headlines carry takeaways rather than topic labels. An SVG figure shows the two cache tiers and the invalidation flow. Short paragraphs throughout; validator passes.",
+      "files": []
+    }
+  ]
+}

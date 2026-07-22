@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Plan"
+  short_description: "Build polished plan pages as review-ready HTML"
+  default_prompt: "Use $build-plan to create a self-contained plan page with sidebar navigation, plain-language writing, and SVG diagrams."
